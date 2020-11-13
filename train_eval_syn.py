@@ -180,7 +180,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             # update the average loss
             average_loss.update(loss)
             # global_step
-            global_step += 1
+
             if not color:
                 pred = pred.unsqueeze(1)
                 gt = gt.unsqueeze(1)
@@ -224,7 +224,7 @@ def train(num_workers, cuda, restart_train, mGPU):
                 save_checkpoint(
                     save_dict, is_best, checkpoint_dir, global_step, max_keep=10
                 )
-
+            global_step += 1
         print('Epoch {} is finished, time elapsed {:.2f} seconds.'.format(epoch, time.time()-epoch_start_time))
         lr_cur = [param['lr'] for param in optimizer.param_groups]
         if lr_cur[0] > 5e-6:
