@@ -191,6 +191,9 @@ def train(num_workers, cuda, restart_train, mGPU):
                 gt = gt.unsqueeze(1)
             if global_step %loss_freq ==0:
                 # calculate PSNR
+                print("burst_noise  : ",burst_noise.size())
+                print("gt   :  ",gt.size())
+                print("feedData   : ", feedData.size())
                 psnr = calculate_psnr(pred, gt)
                 ssim = calculate_ssim(pred, gt)
 
