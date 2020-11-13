@@ -151,12 +151,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     for epoch in range(start_epoch, n_epoch):
         epoch_start_time = time.time()
         # decay the learning rate
-        lr_cur = [param['lr'] for param in optimizer.param_groups]
-        if lr_cur[0] > 5e-6:
-            scheduler.step()
-        else:
-            for param in optimizer.param_groups:
-                param['lr'] = 5e-6
+
         # print('='*20, 'lr={}'.format([param['lr'] for param in optimizer.param_groups]), '='*20)
         t1 = time.time()
         for step, (burst_noise, gt) in enumerate(data_loader):
@@ -231,7 +226,12 @@ def train(num_workers, cuda, restart_train, mGPU):
                 )
 
         print('Epoch {} is finished, time elapsed {:.2f} seconds.'.format(epoch, time.time()-epoch_start_time))
-
+        lr_cur = [param['lr'] for param in optimizer.param_groups]
+        if lr_cur[0] > 5e-6:
+            scheduler.step()
+        else:
+            for param in optimizer.param_groups:
+                param['lr'] = 5e-6
 
 def eval(args):
     color = True
