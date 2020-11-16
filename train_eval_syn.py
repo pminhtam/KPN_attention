@@ -36,7 +36,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     lr_step_size = 100
     burst_length = 8
     # checkpoint path
-    checkpoint_dir = "models/checkpoint"
+    checkpoint_dir = "models" + args.checkpoint
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
     # logs path
@@ -238,7 +238,7 @@ def eval(args):
     print('Eval Process......')
     burst_length = 8
 
-    checkpoint_dir = "checkpoint"
+    checkpoint_dir = "models/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # the path for saving eval images
@@ -301,7 +301,7 @@ def eval(args):
     if args.mGPU:
         model = nn.DataParallel(model)
     # load trained model
-    ckpt = load_checkpoint(checkpoint_dir, args.checkpoint)
+    ckpt = load_checkpoint(checkpoint_dir)
     model.load_state_dict(ckpt['state_dict'])
     print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
     # switch the eval mode
