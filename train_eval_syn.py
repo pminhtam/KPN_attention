@@ -36,7 +36,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     lr_step_size = 100
     burst_length = 8
     # checkpoint path
-    checkpoint_dir = "models" + args.checkpoint
+    checkpoint_dir = "models/" + args.checkpoint
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
     # logs path
