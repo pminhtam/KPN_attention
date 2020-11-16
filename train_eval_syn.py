@@ -313,17 +313,19 @@ def eval(args):
     with torch.no_grad():
         psnr = 0.0
         ssim = 0.0
-        for i, (burst_noise, gt, white_level) in enumerate(data_loader):
+        for i, (burst_noise, gt) in enumerate(data_loader):
             if i < 100:
                 # data = next(data_loader)
                 if args.cuda:
                     burst_noise = burst_noise.cuda()
                     gt = gt.cuda()
-                    white_level = white_level.cuda()
+                if color:
+                    b, N, c, h, w = burst_noise.size()
+                    feedData = burst_noise.view(b, -1, h, w)
+                else:
+                    feedData = burst_noise
+                pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
 
-                pred_i, pred = model(burst_noise, burst_noise[:, 0:burst_length, ...], white_level)
-
-                burst_noise = burst_noise / white_level
 
                 if not color:
                     psnr_t = calculate_psnr(pred.unsqueeze(1), gt.unsqueeze(1))
@@ -351,7 +353,7 @@ def eval(args):
                 print('{}-th image is OK, with PSNR: {:.2f}dB, SSIM: {:.4f}'.format(i, psnr_t, ssim_t))
             else:
                 break
-        print('All images are OK, average PSNR: {:.2f}dB, SSIM: {:.4f}'.format(psnr/100, ssim/100))
+        # print('All images are OK, average PSNR: {:.2f}dB, SSIM: {:.4f}'.format(psnr/100, ssim/100))
 
 
 if __name__ == '__main__':
@@ -368,10 +370,10 @@ if __name__ == '__main__':
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--mGPU', '-m', action='store_true', help='whether to train on multiple GPUs')
     parser.add_argument('--eval', action='store_true', help='whether to work on the evaluation mode')
-    parser.add_argument('--checkpoint', '-ckpt', dest='checkpoint', type=str, default='best',
+    parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--color',default=True, action='store_true')
-    parser.add_argument('--model_type',default="KPN", help='type of model')
+    parser.add_argument('--model_type',default="KPN", help='type of model : KPN, attKPN, attWKPN')
 
     args = parser.parse_args()
     #
