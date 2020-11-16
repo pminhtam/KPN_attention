@@ -40,7 +40,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
     # logs path
-    logs_dir = "models/logs"
+    logs_dir = "models/logs/" + args.checkpoint
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
     shutil.rmtree(logs_dir)
