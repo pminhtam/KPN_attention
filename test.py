@@ -11,7 +11,7 @@ from utils.Att_Weight_KPN import Att_Weight_KPN
 from collections import OrderedDict
 
 import torchvision.transforms as transforms
-
+torch.manual_seed(0)
 def eval(args):
     color = args.color
     print('Eval Process......')
