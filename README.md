@@ -7,10 +7,8 @@ The unofficial implementation of AME-KPNs in PyTorch, and our paper is accepted 
 ### News
 - Support KPN (Kernel Prediction Networks), MKPN (Multi-Kernel Prediction Networks) by modifing the config file.
 - The current version supports training on color images.
-- The noise can be generated in a simple way as the paper descirbed, and a complex way as [Jaroensri's work](https://github.com/12dmodel/camera_sim) but replacing the Halide with OpenCV and scikit-image.
+- Add Deep Guide Filter
 
-### TODO
-Write the documents.
 
 ### Requirements
 - Python3
@@ -19,16 +17,28 @@ Write the documents.
 - Numpy
 - TensorboardX (needed tensorflow support)
 
-### How to use it?
+## How to use it?
 This repo. supports training on multiple GPUs and the default setting is also multi-GPU.  
 
-If you want to restart the train process using KPN, the command you can type as
+Train
+
 ```
-CUDA_VISIBLE_DEVICES=x,x train_eval_syn.py --cuda --mGPU -nw 4 --config_file ./kpn_specs/kpn_config.conf --restart
+CUDA_VISIBLE_DEVICES=0,1 python train_eval_syn.py --noise_dir ../image/noise/ --gt_dir ../image/gt/ --image_size 512 --batch_size 1 --save_every 100 --loss_every 10 -nw 4 -c -m -ckpt att_kpn --model_type attKPN --restart```
 ```
 If no `--restart`, the train process would be resumed.
 
+Eval 
+
+```
+CUDA_VISIBLE_DEVICES=0,1 python test.py --noise_dir ../image/noise/ --gt_dir ../image/gt/ --image_size 512 -nw 4 -c -m -ckpt att_kpn --model_type attKPN```
+```
+
+
 ### Citation
+```
+https://github.com/z-bingo/Attention-Mechanism-Enhanced-KPN
+```
+
 ```
 @article{zhang2019attention,
     title={Attention Mechanism Enhanced Kernel Prediction Networks for Denoising of Burst Images},

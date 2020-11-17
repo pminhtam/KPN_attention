@@ -13,21 +13,17 @@ from collections import OrderedDict
 import torchvision.transforms as transforms
 
 def eval(args):
-    color = True
+    color = args.color
     print('Eval Process......')
     burst_length = 8
     # print(args.checkpoint)
-    checkpoint_dir = "models/" +  args.checkpoint
+    checkpoint_dir = "models/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # the path for saving eval images
     eval_dir = "eval_img"
     if not os.path.exists(eval_dir):
         os.mkdir(eval_dir)
-    if args.restart:
-        files = os.listdir(eval_dir)
-        for f in files:
-            os.remove(os.path.join(eval_dir, f))
 
     # dataset and dataloader
     data_set = MultiLoader(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size)
@@ -85,10 +81,10 @@ def eval(args):
 
     state_dict = ckpt['state_dict']
     new_state_dict = OrderedDict()
-
-    for k, v in state_dict.items():
-        name = k[7:]  # remove `module.`
-        new_state_dict[name] = v
+    if not args.cuda:
+        for k, v in state_dict.items():
+            name = k[7:]  # remove `module.`
+            new_state_dict[name] = v
 
 
     # model.load_state_dict(ckpt['state_dict'])
@@ -152,14 +148,9 @@ if __name__ == "__main__":
     parser.add_argument('--noise_dir', default='/home/dell/Downloads/noise', help='path to noise folder image')
     parser.add_argument('--gt_dir',default='/home/dell/Downloads/gt', help='path to gt folder image')
     parser.add_argument('--image_size',default=256, type=int, help='size of image')
-    parser.add_argument('--batch_size',default=16, type=int, help='batch size')
-    parser.add_argument('--save_every',default=200, type=int, help='save_every')
-    parser.add_argument('--loss_every',default=100, type=int, help='loss_every')
-    parser.add_argument('--restart', action='store_true', help='Whether to remove all old files and restart the training process')
     parser.add_argument('--num_workers', '-nw', default=4, type=int, help='number of workers in data loader')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--mGPU', '-m', action='store_true', help='whether to train on multiple GPUs')
-    parser.add_argument('--eval', action='store_true', help='whether to work on the evaluation mode')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--color',default=True, action='store_true')

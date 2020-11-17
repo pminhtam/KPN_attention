@@ -1,0 +1,8 @@
+pytorch
+torchvision
+numpy
+scikit-learn
+scikit-image
+tensorboardX
+torchsummary
+pillow
