@@ -30,7 +30,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     save_freq = args.save_every
     loss_freq = args.loss_every
     lr_step_size = 100
-    burst_length = 16
+    burst_length = args.burst_length
     # checkpoint path
     checkpoint_dir = "models/" + args.checkpoint
     if not os.path.exists(checkpoint_dir):
@@ -43,7 +43,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     log_writer = SummaryWriter(logs_dir)
 
     # dataset and dataloader
-    data_set = SingleLoader_DGF(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size)
+    data_set = SingleLoader_DGF(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size,burst_length=burst_length)
     data_loader = DataLoader(
         data_set,
         batch_size=batch_size,
@@ -362,6 +362,7 @@ if __name__ == '__main__':
     parser.add_argument('--gt_dir',default='/home/dell/Downloads/gt', help='path to gt folder image')
     parser.add_argument('--image_size',default=128, type=int, help='size of image')
     parser.add_argument('--batch_size',default=2, type=int, help='batch size')
+    parser.add_argument('--burst_length',default=16, type=int, help='batch size')
     parser.add_argument('--save_every',default=200, type=int, help='save_every')
     parser.add_argument('--loss_every',default=10, type=int, help='loss_every')
     parser.add_argument('--restart', action='store_true', help='Whether to remove all old files and restart the training process')

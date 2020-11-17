@@ -5,7 +5,7 @@ import os
 import os.path
 import glob
 import torchvision.transforms as transforms
-
+import math
 ##
 
 IMG_EXTENSIONS = [
@@ -59,12 +59,14 @@ class SingleLoader_DGF(data.Dataset):
         noise_path (list):(image path)
     """
 
-    def __init__(self, noise_dir,gt_dir,image_size=128):
+    def __init__(self, noise_dir,gt_dir,image_size=128,burst_length=16):
 
         self.noise_dir = noise_dir
         self.gt_dir = gt_dir
         self.image_size = image_size
         self.noise_path = []
+        self.burst_length = burst_length
+        self.upscale_factor = int(math.sqrt(self.burst_length))
         for files_ext in IMG_EXTENSIONS:
             self.noise_path.extend(glob.glob(self.noise_dir +"/**/*" + files_ext,recursive=True))
         self.gt_path = []
@@ -94,7 +96,7 @@ class SingleLoader_DGF(data.Dataset):
         image_noise = self.transforms(image_noise)
         image_gt = self.transforms(image_gt)
         image_noise_hr, image_gt_hr = random_cut(image_noise, image_gt, w=self.image_size)
-        image_noise_lr = pixel_unshuffle(image_noise_hr,4)
+        image_noise_lr = pixel_unshuffle(image_noise_hr,upscale_factor = self.upscale_factor)
         return image_noise_hr,image_noise_lr, image_gt_hr
 
 
