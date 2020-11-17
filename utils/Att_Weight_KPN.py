@@ -1,5 +1,3 @@
-import torch
-import torch.nn as nn
 from utils.KPN import *
 
 class Att_Weight_KPN(nn.Module):
