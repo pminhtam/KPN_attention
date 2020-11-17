@@ -121,7 +121,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     average_loss = MovingAverage(save_freq)
     if not restart_train:
         try:
-            checkpoint = load_checkpoint(checkpoint_dir, 'latest')
+            checkpoint = load_checkpoint(checkpoint_dir,cuda , 'latest')
             start_epoch = checkpoint['epoch']
             global_step = checkpoint['global_iter']
             best_loss = checkpoint['best_loss']
@@ -301,7 +301,7 @@ def eval(args):
     if args.mGPU:
         model = nn.DataParallel(model)
     # load trained model
-    ckpt = load_checkpoint(checkpoint_dir)
+    ckpt = load_checkpoint(checkpoint_dir,cuda=args.cuda)
     model.load_state_dict(ckpt['state_dict'])
     print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
     # switch the eval mode

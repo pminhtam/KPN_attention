@@ -81,7 +81,7 @@ def eval(args):
     if args.mGPU:
         model = nn.DataParallel(model)
     # load trained model
-    ckpt = load_checkpoint(checkpoint_dir)
+    ckpt = load_checkpoint(checkpoint_dir,cuda=args.cuda)
 
     state_dict = ckpt['state_dict']
     new_state_dict = OrderedDict()

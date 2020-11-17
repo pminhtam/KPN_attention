@@ -7,8 +7,6 @@ import cv2
 import numbers
 import skimage
 from collections import OrderedDict
-from configobj import ConfigObj
-from validate import Validator
 from skimage.measure import compare_psnr,compare_ssim
 
 
@@ -48,7 +46,7 @@ def _represent_int(s):
         return False
 
 
-def load_checkpoint(checkpoint_dir, best_or_latest='best'):
+def load_checkpoint(checkpoint_dir,cuda = False, best_or_latest='best'):
     if best_or_latest == 'best':
         checkpoint_file = os.path.join(checkpoint_dir, 'model_best.pth.tar')
     elif isinstance(best_or_latest, numbers.Number):
@@ -65,7 +63,11 @@ def load_checkpoint(checkpoint_dir, best_or_latest='best'):
         iters = sorted([int(b) for b in basenames if _represent_int(b)])
         checkpoint_file = os.path.join(checkpoint_dir,
                                        '{:06d}.pth.tar'.format(iters[-1]))
-    return torch.load(checkpoint_file)
+    if cuda:
+        load_result = torch.load(checkpoint_file)
+    else:
+        load_result = torch.load(checkpoint_file, map_location=torch.device('cpu'))
+    return load_result
 
 
 def load_statedict_runtime(checkpoint_dir, best_or_latest='best'):

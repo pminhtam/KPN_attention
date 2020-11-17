@@ -87,7 +87,7 @@ def test_multi(dir,image_size,args):
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model
-    ckpt = load_checkpoint(checkpoint_dir)
+    ckpt = load_checkpoint(checkpoint_dir,cuda=device=='cuda')
     state_dict = ckpt['state_dict']
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
