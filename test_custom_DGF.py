@@ -121,7 +121,7 @@ def test_multi(image_size,args):
         # print(pred[0].size())
         psnr_t = calculate_psnr(pred, gt)
         ssim_t = calculate_ssim(pred, gt)
-        print("UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t))
+        print(i,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t))
         if args.save_img:
             # print(np.array(trans(mf8[0])))
             plt.figure(figsize=(10, 3))

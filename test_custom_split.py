@@ -157,7 +157,7 @@ def test_multi(dir,args):
         ssim_t_up = calculate_ssim(pred_up, gt)
         psnr_t_down = calculate_psnr(pred, gt_down)
         ssim_t_down = calculate_ssim(pred, gt_down)
-        print("UP   :  PSNR : ", str(psnr_t_up)," :  SSIM : ", str(ssim_t_up), " : DOWN   :  PSNR : ", str(psnr_t_down)," :  SSIM : ", str(ssim_t_down))
+        print(i,"   UP   :  PSNR : ", str(psnr_t_up)," :  SSIM : ", str(ssim_t_up), " : DOWN   :  PSNR : ", str(psnr_t_down)," :  SSIM : ", str(ssim_t_down))
 
         # print(np.array(trans(mf8[0])))
         if args.save_img:
