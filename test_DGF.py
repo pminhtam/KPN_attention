@@ -2,13 +2,11 @@ import argparse
 import os
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
+from utils.training_util import load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
-from utils.KPN import KPN,LossFunc
 from utils.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF
 from collections import OrderedDict
-from torch.nn import functional as F
 
 import torchvision.transforms as transforms
 torch.manual_seed(0)
@@ -117,17 +115,9 @@ def eval(args):
                 else:
                     feedData = image_noise_lr
                 pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
-                # print(gt.size())
-                # print(pred.size())
-                # _, _, h_hr, w_hr = gt.size()
-                # _, _, h_lr, w_lr = pred.size()
-                # gt_down = F.interpolate(gt, (h_lr, w_lr), mode='bilinear', align_corners=True)
-                # pred_up = F.interpolate(pred, (h_hr, w_hr), mode='bilinear', align_corners=True)
 
                 psnr_t = calculate_psnr(pred, gt)
                 ssim_t = calculate_ssim(pred, gt)
-                # psnr_t_down = calculate_psnr(pred, gt_down)
-                # ssim_t_down = calculate_ssim(pred, gt_down)
                 print("PSNR : ", str(psnr_t), " :  SSIM : ", str(ssim_t))
 
                 pred = torch.clamp(pred, 0.0, 1.0)
@@ -140,11 +130,8 @@ def eval(args):
                     trans(burst_noise[0, 0, ...].squeeze()).save(os.path.join(eval_dir, '{}_noisy.png'.format(i)), quality=100)
                     trans(pred.squeeze()).save(os.path.join(eval_dir, '{}_pred_{:.2f}dB.png'.format(i, psnr_t)), quality=100)
                     trans(gt.squeeze()).save(os.path.join(eval_dir, '{}_gt.png'.format(i)), quality=100)
-
-                # print('{}-th image is OK, with PSNR: {:.2f}dB, SSIM: {:.4f}'.format(i, psnr_t, ssim_t))
             else:
                 break
-        # print('All images are OK, average PSNR: {:.2f}dB, SSIM: {:.4f}'.format(psnr/100, ssim/100))
 
 
 if __name__ == "__main__":

@@ -17,38 +17,16 @@ from torch.nn import functional as F
 from utils.training_util import calculate_psnr, calculate_ssim
 
 
-def split_img_into_4(img, split_img):
-    im_ori_dim = img.shape
-    shape_split = (int(im_ori_dim[1]/2),int(im_ori_dim[2]/2))
-    list_img_split = torch.zeros((split_img[0],split_img[1],3,shape_split[0],shape_split[1]))
-    for m in range(0,split_img[0]):
-        for n in range(0,split_img[1]):
-                list_img_split[m,n,:,:,:] = img[:,m::split_img[0],n::split_img[1]]
-    list_img_split2 = []
-    for m in range(split_img[0]):
-        for n in range(split_img[1]):
-            list_img_split2.append(list_img_split[m][n])
-    return list_img_split2
 def load_data(image_file,burst_length):
     image_noise = transforms.ToTensor()(Image.open(image_file).convert('RGB'))
     image_noise = pixel_unshuffle(image_noise, 2)
-    # image_noise = np.array(Image.open(image_file).convert('RGB'))
 
-    # image_noise = split_img_into_4(image_noise,(2,2))
-    # image_noise = torch.stack(image_noise, dim=0)
-
-    # print(len(image_noise))
-    # print(image_noise.size())
-    # print(image_noise[-2:-1].size())
     while len(image_noise) < burst_length:
-        # image_noise.append(image_noise[-1])
-        # print(len(image_noise))
+
         image_noise = torch.cat((image_noise,image_noise[-2:-1]),dim=0)
     if len(image_noise) > burst_length:
         image_noise = image_noise[0:8]
-    # image_noise_burst_crop = torch.stack(image_noise, dim=0)
     image_noise_burst_crop = image_noise.unsqueeze(0)
-    # print("image_noise_burst_crop shape : ",image_noise_burst_crop.size())
     return image_noise_burst_crop
 
 def test_multi(dir,args):
