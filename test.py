@@ -59,7 +59,7 @@ def eval(args):
             upMode="bilinear",
             core_bias=False
         )
-    else:
+    elif args.model_type == "KPN":
         model = KPN(
             color=color,
             burst_length=burst_length,
@@ -71,6 +71,9 @@ def eval(args):
             upMode="bilinear",
             core_bias=False
         )
+    else:
+        print(" Model type not valid")
+        return
     if args.cuda:
         model = model.cuda()
 
@@ -131,12 +134,12 @@ def eval(args):
                     pred = pred.cpu()
                     gt = gt.cpu()
                     burst_noise = burst_noise.cpu()
+                if args.save_img:
+                    trans(burst_noise[0, 0, ...].squeeze()).save(os.path.join(eval_dir, '{}_noisy_{:.2f}dB.png'.format(i, psnr_noisy)), quality=100)
+                    trans(pred.squeeze()).save(os.path.join(eval_dir, '{}_pred_{:.2f}dB.png'.format(i, psnr_t)), quality=100)
+                    trans(gt.squeeze()).save(os.path.join(eval_dir, '{}_gt.png'.format(i)), quality=100)
 
-                trans(burst_noise[0, 0, ...].squeeze()).save(os.path.join(eval_dir, '{}_noisy_{:.2f}dB.png'.format(i, psnr_noisy)), quality=100)
-                trans(pred.squeeze()).save(os.path.join(eval_dir, '{}_pred_{:.2f}dB.png'.format(i, psnr_t)), quality=100)
-                trans(gt.squeeze()).save(os.path.join(eval_dir, '{}_gt.png'.format(i)), quality=100)
-
-                print('{}-th image is OK, with PSNR: {:.2f}dB, SSIM: {:.4f}'.format(i, psnr_t, ssim_t))
+                print('{}-th image is OK, with PSNR: {:.2f} , SSIM: {:.4f}'.format(i, psnr_t, ssim_t))
             else:
                 break
         # print('All images are OK, average PSNR: {:.2f}dB, SSIM: {:.4f}'.format(psnr/100, ssim/100))
@@ -155,6 +158,7 @@ if __name__ == "__main__":
                         help='the checkpoint to eval')
     parser.add_argument('--color',default=True, action='store_true')
     parser.add_argument('--model_type',default="KPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #

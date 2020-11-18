@@ -54,7 +54,7 @@ def pixel_unshuffle(input, upscale_factor):
         out_width, upscale_factor)
 
     # channels *= upscale_factor ** 2
-    unshuffle_out = input_view.permute(0, 2, 4, 1, 3).contiguous()
+    unshuffle_out = input_view.permute(2, 4,0, 1, 3).contiguous()
     return unshuffle_out.view(upscale_factor ** 2, channels, out_height, out_width)
 
 class SingleLoader(data.Dataset):

@@ -81,7 +81,7 @@ def test_multi(dir,args):
             upMode="bilinear",
             core_bias=False
         )
-    else:
+    elif args.model_type == "KPN":
         model = KPN(
             color=color,
             burst_length=burst_length,
@@ -93,6 +93,9 @@ def test_multi(dir,args):
             upMode="bilinear",
             core_bias=False
         )
+    else:
+        print(" Model type not valid")
+        return
     # model2 = KPN(
     #     color=color,
     #     burst_length=burst_length,
@@ -145,15 +148,6 @@ def test_multi(dir,args):
     clean_path = [ i.replace("noisy","clean") for i in noisy_path]
     for i in range(10):
         image_noise = load_data(noisy_path[i],burst_length)
-        # for i in range(image_noise.size()[1]):
-        #     im = np.array(trans(image_noise[0][i]))
-        #     cv2.imshow('aaa',im[:,:,::-1])
-        #     cv2.waitKey(0)
-        #     cv2.destroyAllWindows()
-        #     print(im)
-        #     plt.imshow(im)
-        #     plt.show()
-        # continue
         begin = time.time()
         image_noise_batch = image_noise.to(device)
         # print(image_noise.size())

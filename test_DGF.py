@@ -15,7 +15,7 @@ torch.manual_seed(0)
 def eval(args):
     color = args.color
     print('Eval Process......')
-    burst_length = 8
+    burst_length = args.burst_length
     # print(args.checkpoint)
     checkpoint_dir = "models/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
@@ -59,7 +59,7 @@ def eval(args):
             upMode="bilinear",
             core_bias=False
         )
-    else:
+    elif args.model_type == "KPN":
         model = KPN_DGF(
             color=color,
             burst_length=burst_length,
@@ -71,6 +71,9 @@ def eval(args):
             upMode="bilinear",
             core_bias=False
         )
+    else:
+        print(" Model type not valid")
+        return
     if args.cuda:
         model = model.cuda()
 
@@ -84,7 +87,7 @@ def eval(args):
         new_state_dict = OrderedDict()
         if not args.cuda:
             for k, v in state_dict.items():
-                name = k[0:]  # remove `module.`
+                name = k[7:]  # remove `module.`
                 new_state_dict[name] = v
         model.load_state_dict(new_state_dict)
     else:
@@ -113,20 +116,19 @@ def eval(args):
                     feedData = image_noise_lr.view(b, -1, h, w)
                 else:
                     feedData = image_noise_lr
-                pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
-                gt = gt.unsqueeze(0)
-                _, _, h_hr, w_hr = gt.size()
-                _, _, h_lr, w_lr = pred.size()
-                gt_down = F.interpolate(gt, (h_lr, w_lr), mode='bilinear', align_corners=True)
-                pred_up = F.interpolate(pred, (h_hr, w_hr), mode='bilinear', align_corners=True)
+                pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
+                # print(gt.size())
+                # print(pred.size())
+                # _, _, h_hr, w_hr = gt.size()
+                # _, _, h_lr, w_lr = pred.size()
+                # gt_down = F.interpolate(gt, (h_lr, w_lr), mode='bilinear', align_corners=True)
+                # pred_up = F.interpolate(pred, (h_hr, w_hr), mode='bilinear', align_corners=True)
 
-                if not color:
-                    psnr_t_up = calculate_psnr(pred_up, gt)
-                    ssim_t_up = calculate_ssim(pred_up, gt)
-                    psnr_t_down = calculate_psnr(pred, gt_down)
-                    ssim_t_down = calculate_ssim(pred, gt_down)
-                    print("UP   :  PSNR : ", str(psnr_t_up), " :  SSIM : ", str(ssim_t_up), " : DOWN   :  PSNR : ",
-                          str(psnr_t_down), " :  SSIM : ", str(ssim_t_down))
+                psnr_t = calculate_psnr(pred, gt)
+                ssim_t = calculate_ssim(pred, gt)
+                # psnr_t_down = calculate_psnr(pred, gt_down)
+                # ssim_t_down = calculate_ssim(pred, gt_down)
+                print("PSNR : ", str(psnr_t), " :  SSIM : ", str(ssim_t))
 
                 pred = torch.clamp(pred, 0.0, 1.0)
 
@@ -134,10 +136,10 @@ def eval(args):
                     pred = pred.cpu()
                     gt = gt.cpu()
                     burst_noise = burst_noise.cpu()
-
-                trans(burst_noise[0, 0, ...].squeeze()).save(os.path.join(eval_dir, '{}_noisy.png'.format(i)), quality=100)
-                trans(pred.squeeze()).save(os.path.join(eval_dir, '{}_pred_{:.2f}dB.png'.format(i, psnr_t_up)), quality=100)
-                trans(gt.squeeze()).save(os.path.join(eval_dir, '{}_gt.png'.format(i)), quality=100)
+                if args.save_img:
+                    trans(burst_noise[0, 0, ...].squeeze()).save(os.path.join(eval_dir, '{}_noisy.png'.format(i)), quality=100)
+                    trans(pred.squeeze()).save(os.path.join(eval_dir, '{}_pred_{:.2f}dB.png'.format(i, psnr_t)), quality=100)
+                    trans(gt.squeeze()).save(os.path.join(eval_dir, '{}_gt.png'.format(i)), quality=100)
 
                 # print('{}-th image is OK, with PSNR: {:.2f}dB, SSIM: {:.4f}'.format(i, psnr_t, ssim_t))
             else:
@@ -150,14 +152,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='parameters for training')
     parser.add_argument('--noise_dir', default='/home/dell/Downloads/noise', help='path to noise folder image')
     parser.add_argument('--gt_dir',default='/home/dell/Downloads/gt', help='path to gt folder image')
-    parser.add_argument('--image_size',default=256, type=int, help='size of image')
+    parser.add_argument('--image_size',default=1024, type=int, help='size of image')
+    parser.add_argument('--burst_length',default=16, type=int, help='batch size')
     parser.add_argument('--num_workers', '-nw', default=4, type=int, help='number of workers in data loader')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--mGPU', '-m', action='store_true', help='whether to train on multiple GPUs')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_dgf',
                         help='the checkpoint to eval')
     parser.add_argument('--color',default=True, action='store_true')
-    parser.add_argument('--model_type',default="KPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #
