@@ -124,7 +124,7 @@ def test_multi(dir,args):
     torch.manual_seed(0)
     noisy_path = glob.glob(args.noise_dir+ "/*.png")
     clean_path = [ i.replace("noisy","clean") for i in noisy_path]
-    for i in range(10):
+    for i in range(len(noisy_path)):
         image_noise = load_data(noisy_path[i],burst_length)
         begin = time.time()
         image_noise_batch = image_noise.to(device)
@@ -160,21 +160,22 @@ def test_multi(dir,args):
         print("UP   :  PSNR : ", str(psnr_t_up)," :  SSIM : ", str(ssim_t_up), " : DOWN   :  PSNR : ", str(psnr_t_down)," :  SSIM : ", str(ssim_t_down))
 
         # print(np.array(trans(mf8[0])))
-        plt.figure(figsize=(10, 3))
-        plt.subplot(1,3,1)
-        plt.imshow(np.array(trans(pred[0])))
-        plt.title("denoise attKPN")
-        # plt.subplot(1,3,2)
-        # plt.imshow(np.array(trans(pred2[0])))
-        # plt.title("denoise KPN")
-        # plt.show()
-        plt.subplot(1,3,2)
-        plt.imshow(np.array(trans(gt[0])))
-        plt.title("gt")
-        plt.subplot(1,3,3)
-        plt.imshow(np.array(trans(image_noise[0][1])))
-        plt.title("noise ")
-        plt.savefig("models/"+str(i)+'.png',pad_inches=0)
+        if args.save_img:
+            plt.figure(figsize=(10, 3))
+            plt.subplot(1,3,1)
+            plt.imshow(np.array(trans(pred[0])))
+            plt.title("denoise attKPN")
+            # plt.subplot(1,3,2)
+            # plt.imshow(np.array(trans(pred2[0])))
+            # plt.title("denoise KPN")
+            # plt.show()
+            plt.subplot(1,3,2)
+            plt.imshow(np.array(trans(gt[0])))
+            plt.title("gt")
+            plt.subplot(1,3,3)
+            plt.imshow(np.array(trans(image_noise[0][1])))
+            plt.title("noise ")
+            plt.savefig("models/"+str(i)+'.png',pad_inches=0)
         # plt.show()
 
 if __name__ == "__main__":
@@ -186,6 +187,7 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #
