@@ -149,7 +149,7 @@ if __name__ == "__main__":
                         help='the checkpoint to eval')
     parser.add_argument('--color',default=True, action='store_true')
     parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
-    parser.add_argument('--save_img',default=True, action='store_true', help='save image in eval_img folder ')
+    parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #
