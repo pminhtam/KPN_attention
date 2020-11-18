@@ -84,7 +84,7 @@ def eval(args):
         new_state_dict = OrderedDict()
         if not args.cuda:
             for k, v in state_dict.items():
-                name = k[7:]  # remove `module.`
+                name = k[0:]  # remove `module.`
                 new_state_dict[name] = v
         model.load_state_dict(new_state_dict)
     else:
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_workers', '-nw', default=4, type=int, help='number of workers in data loader')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--mGPU', '-m', action='store_true', help='whether to train on multiple GPUs')
-    parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn',
+    parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_dgf',
                         help='the checkpoint to eval')
     parser.add_argument('--color',default=True, action='store_true')
     parser.add_argument('--model_type',default="KPN", help='type of model : KPN, attKPN, attWKPN')

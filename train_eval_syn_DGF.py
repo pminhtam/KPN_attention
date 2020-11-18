@@ -75,7 +75,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             upMode="bilinear",
             core_bias=False
         )
-    else:
+    elif args.model_type == "KPN":
         model = KPN_DGF(
             color=color,
             burst_length=burst_length,
@@ -87,6 +87,9 @@ def train(num_workers, cuda, restart_train, mGPU):
             upMode="bilinear",
             core_bias=False
         )
+    else:
+        print(" Model type not valid")
+        return
     if cuda:
         model = model.cuda()
 
@@ -282,7 +285,7 @@ def eval(args):
             upMode="bilinear",
             core_bias=False
         )
-    else:
+    elif args.model_type == 'KPN':
         model = KPN_DGF(
             color=color,
             burst_length=burst_length,
@@ -294,6 +297,9 @@ def eval(args):
             upMode="bilinear",
             core_bias=False
         )
+    else:
+        print(" Model type not valid")
+        return
     if args.cuda:
         model = model.cuda()
 
