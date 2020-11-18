@@ -16,7 +16,7 @@ import time
 from torch.nn import functional as F
 from utils.training_util import calculate_psnr, calculate_ssim
 
-
+torch.manual_seed(0)
 def load_data(image_file,burst_length):
     image_noise = transforms.ToTensor()(Image.open(image_file).convert('RGB'))
     image_noise = pixel_unshuffle(image_noise, 2)

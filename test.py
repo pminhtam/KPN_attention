@@ -102,6 +102,7 @@ def eval(args):
     with torch.no_grad():
         psnr = 0.0
         ssim = 0.0
+        torch.manual_seed(0)
         for i, (burst_noise, gt) in enumerate(data_loader):
             if i < 100:
                 # data = next(data_loader)

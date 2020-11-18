@@ -14,6 +14,7 @@ import torchvision.transforms as transforms
 import glob
 from PIL import Image
 import time
+torch.manual_seed(0)
 
 def load_data(dir,image_size,burst_length):
     image_files = sorted(glob.glob(dir + "/*"))[:8]
