@@ -79,13 +79,16 @@ def test_multi(image_size,args):
     # load trained model
     ckpt = load_checkpoint(checkpoint_dir,cuda=device=='cuda')
     state_dict = ckpt['state_dict']
-    new_state_dict = OrderedDict()
+
     if not args.cuda:
+        new_state_dict = OrderedDict()
         for k, v in state_dict.items():
             name = k[7:]  # remove `module.`
             new_state_dict[name] = v
-    # model.load_state_dict(ckpt['state_dict'])
-    model.load_state_dict(new_state_dict)
+        model.load_state_dict(new_state_dict)
+    else:
+        model.load_state_dict(ckpt['state_dict'])
+
 
     print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
     # switch the eval mode
