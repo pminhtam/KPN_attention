@@ -128,6 +128,8 @@ def test_multi(dir,image_size,args):
         model.load_state_dict(ckpt['state_dict'])
     print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
     # switch the eval mode
+    model.to(device)
+    model2.to(device)
     model.eval()
     model2.eval()
     # model= save_dict['state_dict']
@@ -139,7 +141,7 @@ def test_multi(dir,image_size,args):
         image_noise_batch = image_noise.to(device)
         print(image_noise_batch.size())
         burst_size = image_noise_batch.size()[1]
-        burst_noise = image_noise_batch
+        burst_noise = image_noise_batch.to(device)
         if color:
             b, N, c, h, w = burst_noise.size()
             feedData = burst_noise.view(b, -1, h, w)
@@ -148,6 +150,8 @@ def test_multi(dir,image_size,args):
         # print(feedData.size())
         pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
         pred_i2, pred2 = model2(feedData, burst_noise[:, 0:burst_length, ...])
+        pred = pred.detach().cpu()
+        pred2 = pred2.detach().cpu()
         print("Time : ", time.time()-begin)
         print(pred_i.size())
         print(pred.size())

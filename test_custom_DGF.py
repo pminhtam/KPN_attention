@@ -89,7 +89,7 @@ def test_multi(image_size,args):
     # else:
     #     model.load_state_dict(ckpt['state_dict'])
 
-
+    model.to(device)
     print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
     # switch the eval mode
     model.eval()
