@@ -96,7 +96,7 @@ def test_multi(image_size,args):
     # model= save_dict['state_dict']
     trans = transforms.ToPILImage()
     torch.manual_seed(0)
-    noisy_path = glob.glob(args.noise_dir+ "/*.png")
+    noisy_path = sorted(glob.glob(args.noise_dir+ "/*.png"))
     clean_path = [ i.replace("noisy","clean") for i in noisy_path]
     for i in range(len(noisy_path)):
         image_noise,image_noise_hr = load_data(noisy_path[i],burst_length)
