@@ -81,7 +81,7 @@ def eval(args):
     ckpt = load_checkpoint(checkpoint_dir,cuda=args.cuda)
 
     state_dict = ckpt['state_dict']
-    if not args.cuda:
+    if not args.mGPU:
         new_state_dict = OrderedDict()
         if not args.cuda:
             for k, v in state_dict.items():

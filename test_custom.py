@@ -105,10 +105,10 @@ def test_multi(dir,image_size,args):
     ckpt = load_checkpoint(checkpoint_dir,cuda=device=='cuda')
     state_dict = ckpt['state_dict']
     new_state_dict = OrderedDict()
-    if not args.cuda:
-        for k, v in state_dict.items():
-            name = k[7:]  # remove `module.`
-            new_state_dict[name] = v
+    # if not args.mGPU:
+    for k, v in state_dict.items():
+        name = k[7:]  # remove `module.`
+        new_state_dict[name] = v
     # model.load_state_dict(ckpt['state_dict'])
     model.load_state_dict(new_state_dict)
 
