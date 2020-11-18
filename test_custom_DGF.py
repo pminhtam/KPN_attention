@@ -100,11 +100,12 @@ def test_multi(image_size,args):
     clean_path = [ i.replace("noisy","clean") for i in noisy_path]
     for i in range(len(noisy_path)):
         image_noise,image_noise_hr = load_data(noisy_path[i],burst_length)
+        image_noise_hr = image_noise_hr.to(device)
         begin = time.time()
         image_noise_batch = image_noise.to(device)
         # print(image_noise_batch.size())
         burst_size = image_noise_batch.size()[1]
-        burst_noise = image_noise_batch
+        burst_noise = image_noise_batch.to(device)
         # print(burst_noise.size())
         # print(image_noise_hr.size())
         if color:
@@ -114,6 +115,7 @@ def test_multi(image_size,args):
             feedData = burst_noise
         # print(feedData.size())
         pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
+        pred = pred.detach().cpu()
         # print("Time : ", time.time()-begin)
         gt = transforms.ToTensor()(Image.open(clean_path[i]).convert('RGB'))
         gt = gt.unsqueeze(0)
