@@ -18,9 +18,9 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider import *
-from utils.KPN import KPN,LossFunc
-from utils.Att_KPN import Att_KPN
-from utils.Att_Weight_KPN import Att_Weight_KPN
+from utils.KPN import LossFunc
+from utils.KPN_noise_estimate import KPN_noise,Att_KPN_noise,Att_Weight_KPN_noise
+
 
 def train(num_workers, cuda, restart_train, mGPU):
     # torch.set_num_threads(num_threads)
@@ -56,10 +56,10 @@ def train(num_workers, cuda, restart_train, mGPU):
     )
     # model here
     if args.model_type == "attKPN":
-        model = Att_KPN(
+        model = Att_KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
             channel_att=True,
@@ -68,10 +68,10 @@ def train(num_workers, cuda, restart_train, mGPU):
             core_bias=False
         )
     elif args.model_type == "attWKPN":
-        model = Att_Weight_KPN(
+        model = Att_Weight_KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
             channel_att=True,
@@ -80,10 +80,10 @@ def train(num_workers, cuda, restart_train, mGPU):
             core_bias=False
         )
     elif args.model_type == 'KPN':
-        model = KPN(
+        model = KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
             channel_att=False,
@@ -164,15 +164,8 @@ def train(num_workers, cuda, restart_train, mGPU):
                 burst_noise = burst_noise.cuda()
                 gt = gt.cuda()
 
-            if color:
-                b, N, c, h, w = burst_noise.size()
-                feedData = burst_noise.view(b, -1, h, w)
-            else:
-                feedData = burst_noise
-            # print('white_level', white_level, white_level.size())
-            # print("feedData   : ",feedData.size())
             #
-            pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
+            pred_i, pred = model(burst_noise)
             #
             loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             loss = loss_basic + loss_anneal
@@ -191,7 +184,6 @@ def train(num_workers, cuda, restart_train, mGPU):
                 # calculate PSNR
                 print("burst_noise  : ",burst_noise.size())
                 print("gt   :  ",gt.size())
-                print("feedData   : ", feedData.size())
                 psnr = calculate_psnr(pred, gt)
                 ssim = calculate_ssim(pred, gt)
 
@@ -263,7 +255,7 @@ def eval(args):
 
     # model here
     if args.model_type == "attKPN":
-        model = Att_KPN(
+        model = Att_KPN_noise(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -275,7 +267,7 @@ def eval(args):
             core_bias=False
         )
     elif args.model_type == "attWKPN":
-        model = Att_Weight_KPN(
+        model = Att_Weight_KPN_noise(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -287,7 +279,7 @@ def eval(args):
             core_bias=False
         )
     elif args.model_type == "KPN":
-        model = KPN(
+        model = KPN_noise(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -325,13 +317,8 @@ def eval(args):
                 if args.cuda:
                     burst_noise = burst_noise.cuda()
                     gt = gt.cuda()
-                if color:
-                    b, N, c, h, w = burst_noise.size()
-                    feedData = burst_noise.view(b, -1, h, w)
-                else:
-                    feedData = burst_noise
-                pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
 
+                pred_i, pred = model( burst_noise)
 
                 if not color:
                     psnr_t = calculate_psnr(pred.unsqueeze(1), gt.unsqueeze(1))

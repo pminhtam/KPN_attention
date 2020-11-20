@@ -310,5 +310,15 @@ class TensorGradient(nn.Module):
 
 
 if __name__ == '__main__':
-    kpn = KPN(6, 5*5*6, True, True).cuda()
-    print(summary(kpn, (6, 224, 224), batch_size=4))
+    kpn = KPN(
+            color=True,
+            burst_length=8,
+            blind_est=False,
+            kernel_size=[5],
+            sep_conv=False,
+            channel_att=False,
+            spatial_att=False,
+            upMode="bilinear",
+            core_bias=False
+        )
+    print(summary(kpn, [(27, 224, 224),(8,3, 224, 224)], batch_size=1))
