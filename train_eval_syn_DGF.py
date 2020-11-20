@@ -268,8 +268,8 @@ def eval(args):
             blind_est=True,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
+            channel_att=True,
+            spatial_att=True,
             upMode="bilinear",
             core_bias=False
         )
@@ -280,8 +280,8 @@ def eval(args):
             blind_est=True,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
+            channel_att=True,
+            spatial_att=True,
             upMode="bilinear",
             core_bias=False
         )
