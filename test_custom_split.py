@@ -162,21 +162,22 @@ def test_multi(dir,args):
 
         # print(np.array(trans(mf8[0])))
         if args.save_img:
-            plt.figure(figsize=(10, 3))
+            plt.figure(figsize=(30, 9))
             plt.subplot(1,3,1)
             plt.imshow(np.array(trans(pred[0])))
-            plt.title("denoise attKPN")
+            plt.title("denoise "+args.model_type, fontsize=26)
             # plt.subplot(1,3,2)
             # plt.imshow(np.array(trans(pred2[0])))
             # plt.title("denoise KPN")
             # plt.show()
             plt.subplot(1,3,2)
             plt.imshow(np.array(trans(gt[0])))
-            plt.title("gt")
+            plt.title("gt", fontsize=26)
             plt.subplot(1,3,3)
             plt.imshow(np.array(trans(image_noise[0][1])))
-            plt.title("noise ")
-            plt.savefig("models/"+str(i)+'.png',pad_inches=0)
+            plt.title("noise ", fontsize=26)
+            plt.suptitle(str(i)+"   UP   :  PSNR : "+ str(psnr_t_up)+" :  SSIM : "+ str(ssim_t_up)+ " : DOWN   :  PSNR : "+ str(psnr_t_down)+" :  SSIM : "+ str(ssim_t_down), fontsize=26)
+            plt.savefig("models/"+ args.model_type+str(i)+'.png',pad_inches=0)
         # plt.show()
 
 if __name__ == "__main__":

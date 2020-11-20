@@ -93,6 +93,8 @@ def eval(args):
     else:
         model.load_state_dict(ckpt['state_dict'])
     print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
+    # torch.save(model.state_dict(), "model_state.pth")
+    # exit(0)
     # switch the eval mode
     model.eval()
 
