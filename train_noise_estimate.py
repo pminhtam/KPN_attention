@@ -258,7 +258,7 @@ def eval(args):
         model = Att_KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
             channel_att=True,
@@ -270,7 +270,7 @@ def eval(args):
         model = Att_Weight_KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
             channel_att=True,
@@ -282,7 +282,7 @@ def eval(args):
         model = KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
             channel_att=False,
