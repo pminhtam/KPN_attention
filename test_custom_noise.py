@@ -3,9 +3,7 @@ import os
 import torch
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.data_provider_DGF import pixel_unshuffle
-from utils.KPN import KPN,LossFunc
-from utils.Att_KPN import Att_KPN
-from utils.Att_Weight_KPN import Att_Weight_KPN
+from utils.KPN_noise_estimate import KPN_noise,Att_KPN_noise,Att_Weight_KPN_noise
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,38 +34,38 @@ def test_multi(dir,args):
     burst_length = 8
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if args.model_type == "attKPN":
-        model = Att_KPN(
+        model = Att_KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
+            channel_att=True,
+            spatial_att=True,
             upMode="bilinear",
             core_bias=False
         )
     elif args.model_type == "attWKPN":
-        model = Att_Weight_KPN(
+        model = Att_Weight_KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
+            channel_att=True,
+            spatial_att=True,
             upMode="bilinear",
             core_bias=False
         )
     elif args.model_type == "KPN":
-        model = KPN(
+        model = KPN_noise(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
+            blind_est=False,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
+            channel_att=True,
+            spatial_att=True,
             upMode="bilinear",
             core_bias=False
         )
@@ -129,18 +127,10 @@ def test_multi(dir,args):
         image_noise = load_data(noisy_path[i],burst_length)
         begin = time.time()
         image_noise_batch = image_noise.to(device)
-        # print(image_noise.size())
-        # print(image_noise_batch.size())
         burst_noise = image_noise_batch.to(device)
-        if color:
-            b, N, c, h, w = burst_noise.size()
-            feedData = burst_noise.view(b, -1, h, w)
-        else:
-            feedData = burst_noise
-        # print(feedData.size())
-        pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
-        # pred_i2, pred2 = model2(feedData, burst_noise[:, 0:burst_length, ...])
-        # print("Time : ", time.time()-begin)
+
+        pred_i, pred = model(burst_noise)
+
         pred = pred.detach().cpu()
         gt = transforms.ToTensor()(Image.open(clean_path[i]).convert('RGB'))
         # print(pred_i.size())
@@ -186,7 +176,7 @@ if __name__ == "__main__":
     parser.add_argument('--noise_dir','-n', default='/home/dell/Downloads/FullTest/noisy', help='path to noise image file')
     parser.add_argument('--gt','-g', default='/home/dell/Downloads/FullTest/clean', help='path to noise image file')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
-    parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn',
+    parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_noise',
                         help='the checkpoint to eval')
     parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
     parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
