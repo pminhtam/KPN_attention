@@ -64,8 +64,8 @@ def test_multi(dir,args):
             blind_est=False,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=True,
-            spatial_att=True,
+            channel_att=False,
+            spatial_att=False,
             upMode="bilinear",
             core_bias=False
         )
