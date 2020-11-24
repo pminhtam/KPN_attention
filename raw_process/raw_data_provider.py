@@ -26,7 +26,7 @@ class MultiLoader(data.Dataset):
         self.noise_dir = noise_dir
         self.gt_dir = gt_dir
         self.image_size = image_size
-        self.noise_path = glob.glob(self.noise_dir + "/*MAT")
+        self.noise_path = glob.glob(self.noise_dir + "/*")
         # for files_ext in IMG_EXTENSIONS:
         #     self.noise_path.extend(glob.glob(self.noise_dir + "/*" + files_ext))
         # self.gt_path = glob.glob(self.gt_dir + "/*")
@@ -50,7 +50,7 @@ class MultiLoader(data.Dataset):
         """
 
         path = self.noise_path[index]
-        list_path = sorted(glob.glob(path + "/*"))[:8]
+        list_path = sorted(glob.glob(path + "/*MAT"))[:8]
 
         name_folder_image = list_path[0].split("/")[-2].replace("NOISY_", "GT_")
         name_image = list_path[0].split("/")[-1].replace("NOISY_", "GT_")
