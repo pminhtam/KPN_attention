@@ -60,7 +60,7 @@ CUDA_VISIBLE_DEVICES=1 python test_custom_DGF.py -n ../FullTest/noisy/ -g ../Ful
 - Support KPN (Kernel Prediction Networks), MKPN (Multi-Kernel Prediction Networks)
 - The current version supports training on color images.
 - Add Deep Guide Filter
-
+- Add noise estimate model to end-to-end denoising model
 
 ## Name 
 
