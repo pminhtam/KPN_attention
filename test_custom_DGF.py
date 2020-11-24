@@ -28,9 +28,7 @@ def load_data(image_file,burst_length):
         image_noise = image_noise[0:8]
     image_noise_burst_crop = image_noise.unsqueeze(0)
     return image_noise_burst_crop,image_noise_hr.unsqueeze(0)
-def test_multi(image_size,args):
-    num_workers = 1
-    batch_size = 1
+def test_multi(args):
     color = True
     burst_length = args.burst_length
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -124,42 +122,50 @@ def test_multi(image_size,args):
         psnr_t = calculate_psnr(pred, gt)
         ssim_t = calculate_ssim(pred, gt)
         print(i,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t))
+        if args.save_img != '':
+            if not os.path.exists(args.save_img):
+                os.makedirs(args.save_img)
+            plt.figure(figsize=(15, 15))
+            plt.imshow(np.array(trans(pred[0])))
+            plt.title("denoise KPN DGF "+args.model_type, fontsize=25)
+            image_name = noisy_path[i].split("/")[-1].split(".")[0]
+            plt.axis("off")
+            plt.suptitle(image_name+"   UP   :  PSNR : "+ str(psnr_t)+" :  SSIM : "+ str(ssim_t), fontsize=25)
+            plt.savefig( os.path.join(args.save_img,image_name + "_" + args.checkpoint + '.png'),pad_inches=0)
+        """
         if args.save_img:
             # print(np.array(trans(mf8[0])))
-            plt.figure(figsize=(15, 15))
-            # plt.subplot(1,3,1)
+            plt.figure(figsize=(30, 9))
+            plt.subplot(1,3,1)
             plt.imshow(np.array(trans(pred[0])))
-            plt.title("denoise DGF "+args.model_type, fontsize=40)
-            # plt.show()
-            # plt.subplot(1,3,2)
-            # plt.imshow(np.array(trans(gt[0])))
-            # plt.title("gt ", fontsize=26)
-            # plt.subplot(1,3,3)
-            # plt.imshow(np.array(trans(image_noise_hr[0])))
-            # plt.title("noise ", fontsize=26)
+            plt.title("denoise DGF "+args.model_type, fontsize=26)
+            plt.subplot(1,3,2)
+            plt.imshow(np.array(trans(gt[0])))
+            plt.title("gt ", fontsize=26)
+            plt.subplot(1,3,3)
+            plt.imshow(np.array(trans(image_noise_hr[0])))
+            plt.title("noise ", fontsize=26)
             plt.axis("off")
-            plt.suptitle(str(i)+"   UP   :  PSNR : "+ str(psnr_t)+" :  SSIM : "+ str(ssim_t), fontsize=40)
-            plt.savefig("models/DGF_" + args.checkpoint+str(i)+'.png',pad_inches=0)
-            # plt.show()
+            plt.suptitle(str(i)+"   UP   :  PSNR : "+ str(psnr_t)+" :  SSIM : "+ str(ssim_t), fontsize=26)
+            plt.savefig("models/22_DGF_" + args.checkpoint+str(i)+'.png',pad_inches=0)
+        """
 
 if __name__ == "__main__":
     # argparse
     parser = argparse.ArgumentParser(description='parameters for training')
     parser.add_argument('--noise_dir','-n', default='/home/dell/Downloads/FullTest/noisy', help='path to noise image file')
     parser.add_argument('--gt','-g', default='/home/dell/Downloads/FullTest/clean', help='path to noise image file')
-    parser.add_argument('--image_size','-sz' , type=int,default=256, help='size of image')
     parser.add_argument('--burst_length',default=16, type=int, help='batch size')
-    parser.add_argument('--num_workers', '-nw', default=4, type=int, help='number of workers in data loader')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_dgf',
                         help='the checkpoint to eval')
     parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
-    parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
+    parser.add_argument('--save_img',default="", type=str, help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #
 
-    test_multi(args.image_size,args)
+    test_multi(args)
 
 
 

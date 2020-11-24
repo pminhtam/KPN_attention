@@ -29,9 +29,7 @@ def load_data(image_file,burst_length):
     image_noise_burst_crop = image_noise.unsqueeze(0)
     return image_noise_burst_crop
 
-def test_multi(dir,args):
-    num_workers = 1
-    batch_size = 1
+def test_multi(args):
     color = True
     burst_length = 8
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -42,8 +40,8 @@ def test_multi(dir,args):
             blind_est=True,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
+            channel_att=True,
+            spatial_att=True,
             upMode="bilinear",
             core_bias=False
         )
@@ -54,8 +52,8 @@ def test_multi(dir,args):
             blind_est=True,
             kernel_size=[5],
             sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
+            channel_att=True,
+            spatial_att=True,
             upMode="bilinear",
             core_bias=False
         )
@@ -160,7 +158,19 @@ def test_multi(dir,args):
         ssim_t_down = calculate_ssim(pred, gt_down)
         print(i,"   UP   :  PSNR : ", str(psnr_t_up)," :  SSIM : ", str(ssim_t_up), " : DOWN   :  PSNR : ", str(psnr_t_down)," :  SSIM : ", str(ssim_t_down))
 
+        if args.save_img != '':
+            if not os.path.exists(args.save_img):
+                os.makedirs(args.save_img)
+            plt.figure(figsize=(15, 15))
+            plt.imshow(np.array(trans(pred_up[0])))
+            plt.title("denoise KPN split "+args.model_type, fontsize=25)
+            image_name = noisy_path[i].split("/")[-1].split(".")[0]
+            plt.axis("off")
+            plt.suptitle(image_name+"   UP   :  PSNR : "+ str(psnr_t_up)+" :  SSIM : "+ str(ssim_t_up), fontsize=25)
+            plt.savefig( os.path.join(args.save_img,image_name + "_" + args.checkpoint + '.png'),pad_inches=0)
+
         # print(np.array(trans(mf8[0])))
+        """
         if args.save_img:
             plt.figure(figsize=(30, 9))
             plt.subplot(1,3,1)
@@ -178,6 +188,7 @@ def test_multi(dir,args):
             plt.title("noise ", fontsize=26)
             plt.suptitle(str(i)+"   UP   :  PSNR : "+ str(psnr_t_up)+" :  SSIM : "+ str(ssim_t_up)+ " : DOWN   :  PSNR : "+ str(psnr_t_down)+" :  SSIM : "+ str(ssim_t_down), fontsize=26)
             plt.savefig("models/"+ args.model_type+str(i)+'.png',pad_inches=0)
+        """
         # plt.show()
 
 if __name__ == "__main__":
@@ -189,12 +200,12 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
-    parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
+    parser.add_argument('--save_img',default="", type=str, help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #
 
-    test_multi(args.noise_dir,args)
+    test_multi(args)
 
 
 
