@@ -155,12 +155,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='parameters for training')
     parser.add_argument('--noise_dir','-n', default='/home/dell/Downloads/FullTest/noisy', help='path to noise image file')
     parser.add_argument('--gt','-g', default='/home/dell/Downloads/FullTest/clean', help='path to noise image file')
-    parser.add_argument('--burst_length',default=16, type=int, help='batch size')
+    parser.add_argument('--burst_length','-b' ,default=16, type=int, help='batch size')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_dgf',
                         help='the checkpoint to eval')
-    parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
-    parser.add_argument('--save_img',default="", type=str, help='save image in eval_img folder ')
+    parser.add_argument('--model_type','-m' ,default="attKPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--save_img', "-s" ,default="", type=str, help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #

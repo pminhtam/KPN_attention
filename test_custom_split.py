@@ -199,8 +199,8 @@ if __name__ == "__main__":
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn',
                         help='the checkpoint to eval')
-    parser.add_argument('--model_type',default="attKPN", help='type of model : KPN, attKPN, attWKPN')
-    parser.add_argument('--save_img',default="", type=str, help='save image in eval_img folder ')
+    parser.add_argument('--model_type', '-m' , default="attKPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--save_img', 's'  , default="", type=str, help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #
