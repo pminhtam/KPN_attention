@@ -113,6 +113,7 @@ def test_multi(args):
             feedData = burst_noise
         # print(feedData.size())
         pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
+        del pred_i
         pred = pred.detach().cpu()
         # print("Time : ", time.time()-begin)
         gt = transforms.ToTensor()(Image.open(clean_path[i]).convert('RGB'))

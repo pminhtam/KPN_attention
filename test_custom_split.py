@@ -137,6 +137,7 @@ def test_multi(args):
             feedData = burst_noise
         # print(feedData.size())
         pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
+        del pred_i
         # pred_i2, pred2 = model2(feedData, burst_noise[:, 0:burst_length, ...])
         # print("Time : ", time.time()-begin)
         pred = pred.detach().cpu()

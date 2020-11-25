@@ -3,7 +3,6 @@ from utils.KPN import KPN
 from utils.Att_KPN import Att_KPN
 from utils.Att_Weight_KPN import Att_Weight_KPN
 import torch.nn as nn
-from guided_filter_pytorch.guided_filter import ConvGuidedFilter
 from utils.noise_estimation import Network as NoiseEstimate
 
 class KPN_noise(nn.Module):

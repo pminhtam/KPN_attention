@@ -128,7 +128,7 @@ def test_multi(args):
         burst_noise = image_noise_batch.to(device)
 
         pred_i, pred = model(burst_noise)
-
+        del pred_i
         pred = pred.detach().cpu()
         gt = transforms.ToTensor()(Image.open(clean_path[i]).convert('RGB'))
         # print(pred_i.size())
