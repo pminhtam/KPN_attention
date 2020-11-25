@@ -29,7 +29,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     batch_size = args.batch_size
     lr = 2e-4
     lr_decay = 0.89125093813
-    n_epoch = 250
+    n_epoch = args.epoch
     # num_workers = 8
     save_freq = args.save_every
     loss_freq = args.loss_every
@@ -365,21 +365,22 @@ def eval(args):
 if __name__ == '__main__':
     # argparse
     parser = argparse.ArgumentParser(description='parameters for training')
-    parser.add_argument('--noise_dir', default='/home/dell/Downloads/noise_raw', help='path to noise folder image')
-    parser.add_argument('--gt_dir',default='/home/dell/Downloads/gt_raw', help='path to gt folder image')
-    parser.add_argument('--image_size',default=256, type=int, help='size of image')
-    parser.add_argument('--batch_size',default=16, type=int, help='batch size')
-    parser.add_argument('--save_every',default=200, type=int, help='save_every')
-    parser.add_argument('--loss_every',default=100, type=int, help='loss_every')
-    parser.add_argument('--restart', action='store_true', help='Whether to remove all old files and restart the training process')
+    parser.add_argument('--noise_dir','-n',  default='/home/dell/Downloads/noise_raw', help='path to noise folder image')
+    parser.add_argument('--gt_dir', '-g' ,default='/home/dell/Downloads/gt_raw', help='path to gt folder image')
+    parser.add_argument('--image_size','-sz' ,default=256, type=int, help='size of image')
+    parser.add_argument('--batch_size','-bs' ,default=16, type=int, help='batch size')
+    parser.add_argument('--epoch', '-e' ,default=1000, type=int, help='batch size')
+    parser.add_argument('--save_every', '-se' ,default=200, type=int, help='save_every')
+    parser.add_argument('--loss_every','-le' ,default=100, type=int, help='loss_every')
+    parser.add_argument('--restart', '-r' , action='store_true', help='Whether to remove all old files and restart the training process')
     parser.add_argument('--num_workers', '-nw', default=4, type=int, help='number of workers in data loader')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
-    parser.add_argument('--mGPU', '-m', action='store_true', help='whether to train on multiple GPUs')
+    parser.add_argument('--mGPU', '-mg', action='store_true', help='whether to train on multiple GPUs')
     parser.add_argument('--eval', action='store_true', help='whether to work on the evaluation mode')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn_raw',
                         help='the checkpoint to eval')
-    parser.add_argument('--color',default=False, action='store_true')
-    parser.add_argument('--model_type',default="KPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--color','-cl' , default=False, action='store_true')
+    parser.add_argument('--model_type', '-m' , default="KPN", help='type of model : KPN, attKPN, attWKPN')
 
     args = parser.parse_args()
     #
