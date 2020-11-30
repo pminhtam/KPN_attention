@@ -5,7 +5,7 @@ import os
 import os.path
 import glob
 import torchvision.transforms as transforms
-from utils.data_transform import random_flip
+from utils.data_transform import random_flip,random_rotate
 import numpy as np
 
 ##
@@ -95,12 +95,14 @@ class SingleLoader(data.Dataset):
         """
         rand_hflip = torch.rand(1)[0]
         rand_vflip = torch.rand(1)[0]
-
+        rand_affine = torch.rand(1)[0]
+        angle = torch.randint(low= -20,high=20,size=(1,))[0]
         image_noise = random_flip(Image.open(self.noise_path[index]).convert('RGB'),rand_hflip,rand_vflip)
+        image_noise = random_rotate(image_noise,rand_affine,angle)
         name_image_gt = self.noise_path[index].split("/")[-1].replace("NOISY_", "GT_")
         image_folder_name_gt = self.noise_path[index].split("/")[-2].replace("NOISY_", "GT_")
         image_gt = random_flip(Image.open(os.path.join(self.gt_dir, image_folder_name_gt, name_image_gt)).convert('RGB'),rand_hflip,rand_vflip)
-
+        image_gt = random_rotate(image_gt,rand_affine,angle)
         image_noise = self.transforms(image_noise)
         image_gt = self.transforms(image_gt)
         image_noise, image_gt = random_cut(image_noise, image_gt, w=self.image_size)
@@ -148,13 +150,16 @@ class MultiLoader(data.Dataset):
         """
         rand_hflip = torch.rand(1)[0]
         rand_vflip = torch.rand(1)[0]
-
+        rand_affine = torch.rand(1)[0]
+        angle = torch.randint(low= -20,high=20,size=(1,))[0]
+        shear = torch.randint(low= -5,high=5,size=(1,))[0]
         path = self.noise_path[index]
         list_path = sorted(glob.glob(path + "/*"))[:8]
 
         name_folder_image = list_path[0].split("/")[-2].replace("NOISY_", "GT_")
         name_image = list_path[0].split("/")[-1].replace("NOISY_", "GT_")
         image_gt = random_flip(Image.open(os.path.join(self.gt_dir, name_folder_image, name_image)).convert('RGB'),rand_hflip,rand_vflip)
+        image_gt = random_rotate(image=image_gt, rand_affine=rand_affine,angle=angle)
         image_gt = self.transforms(image_gt)
         ############
         # Choose randcrop
@@ -168,7 +173,7 @@ class MultiLoader(data.Dataset):
                                )
         # print("nw  : ",nw)
         # idx_w = np.random.choice(nw + 1)
-        idx_w = torch.randint(0, nw + 1, (1,))[0]
+        idx_w = torch.randint(low = 0,high= nw + 1,size= (1,))[0]
         # idx_h = np.random.choice(nh + 1)
         idx_h = torch.randint(0, nh + 1, (1,))[0]
 
@@ -179,7 +184,7 @@ class MultiLoader(data.Dataset):
         ##########
         image_gt_crop = image_gt[:, idx_h:(idx_h + h), idx_w:(idx_w + w)]
 
-        image_noise = [self.transforms(random_flip(Image.open(img_path).convert('RGB'),rand_hflip,rand_vflip))[:, idx_h:(idx_h + h), idx_w:(idx_w + w)] for
+        image_noise = [self.transforms(random_rotate(random_flip(Image.open(img_path).convert('RGB'),rand_hflip,rand_vflip), rand_affine=rand_affine,angle=angle))[:, idx_h:(idx_h + h), idx_w:(idx_w + w)] for
                        img_path in list_path]
         image_noise_burst_crop = torch.stack(image_noise, dim=0)
 
