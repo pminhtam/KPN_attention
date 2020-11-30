@@ -6,6 +6,7 @@ import os.path
 import glob
 import torchvision.transforms as transforms
 import math
+from utils.data_transform import random_flip
 ##
 
 IMG_EXTENSIONS = [
@@ -88,10 +89,13 @@ class SingleLoader_DGF(data.Dataset):
         Returns:
             tuple: (image, groundtrue) where image is a noisy version of groundtrue 
         """
-        image_noise = Image.open(self.noise_path[index]).convert('RGB')
+        rand_hflip = torch.rand(1)[0]
+        rand_vflip = torch.rand(1)[0]
+
+        image_noise = random_flip(Image.open(self.noise_path[index]).convert('RGB'),rand_hflip,rand_vflip)
         name_image_gt = self.noise_path[index].split("/")[-1].replace("NOISY_","GT_")
         image_folder_name_gt = self.noise_path[index].split("/")[-2].replace("NOISY_","GT_")
-        image_gt = Image.open(os.path.join(self.gt_dir,image_folder_name_gt, name_image_gt)).convert('RGB')
+        image_gt = random_flip(Image.open(os.path.join(self.gt_dir,image_folder_name_gt, name_image_gt)).convert('RGB'),rand_hflip,rand_vflip)
 
         image_noise = self.transforms(image_noise)
         image_gt = self.transforms(image_gt)
@@ -140,7 +144,8 @@ class MultiLoader_DGF(data.Dataset):
         Returns:
             tuple: (image, groundtrue) where image is a noisy version of groundtrue
         """
-
+        rand_hflip = torch.rand(1)[0]
+        rand_vflip = torch.rand(1)[0]
 
         path = self.noise_path[index]
         list_path = sorted(glob.glob(path+"/*"))[:8]
@@ -148,7 +153,7 @@ class MultiLoader_DGF(data.Dataset):
 
         name_folder_image = list_path[0].split("/")[-2].replace("NOISY_", "GT_")
         name_image = list_path[0].split("/")[-1].replace("NOISY_", "GT_")
-        image_gt = Image.open(os.path.join(self.gt_dir, name_folder_image,name_image)).convert('RGB')
+        image_gt = random_flip(Image.open(os.path.join(self.gt_dir, name_folder_image,name_image)).convert('RGB'),rand_hflip,rand_vflip)
         image_gt = self.transforms(image_gt)
         ############
         # Choose randcrop
@@ -168,7 +173,7 @@ class MultiLoader_DGF(data.Dataset):
 
         image_gt_hr_crop = image_gt[:,idx_h:(idx_h+h), idx_w:(idx_w+w)]
 
-        image_noise_hr = [self.transforms(Image.open(img_path).convert('RGB'))[:,idx_h:(idx_h+h), idx_w:(idx_w+w)] for img_path in list_path]
+        image_noise_hr = [self.transforms(random_flip(Image.open(img_path).convert('RGB'),rand_hflip,rand_vflip))[:,idx_h:(idx_h+h), idx_w:(idx_w+w)] for img_path in list_path]
         image_noise_lr = [self.resize_pytorch(image_noise_hr_i) for image_noise_hr_i in image_noise_hr]
         image_noise_hr_burst_crop = torch.stack(image_noise_hr, dim=0)
         image_noise_lr_burst_crop = torch.stack(image_noise_lr, dim=0)

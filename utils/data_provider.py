@@ -5,6 +5,7 @@ import os
 import os.path
 import glob
 import torchvision.transforms as transforms
+from utils.data_transform import random_flip
 import numpy as np
 
 ##
@@ -92,10 +93,13 @@ class SingleLoader(data.Dataset):
         Returns:
             tuple: (image, groundtrue) where image is a noisy version of groundtrue
         """
-        image_noise = Image.open(self.noise_path[index]).convert('RGB')
+        rand_hflip = torch.rand(1)[0]
+        rand_vflip = torch.rand(1)[0]
+
+        image_noise = random_flip(Image.open(self.noise_path[index]).convert('RGB'),rand_hflip,rand_vflip)
         name_image_gt = self.noise_path[index].split("/")[-1].replace("NOISY_", "GT_")
         image_folder_name_gt = self.noise_path[index].split("/")[-2].replace("NOISY_", "GT_")
-        image_gt = Image.open(os.path.join(self.gt_dir, image_folder_name_gt, name_image_gt)).convert('RGB')
+        image_gt = random_flip(Image.open(os.path.join(self.gt_dir, image_folder_name_gt, name_image_gt)).convert('RGB'),rand_hflip,rand_vflip)
 
         image_noise = self.transforms(image_noise)
         image_gt = self.transforms(image_gt)
@@ -142,13 +146,15 @@ class MultiLoader(data.Dataset):
         Returns:
             tuple: (image, groundtrue) where image is a noisy version of groundtrue
         """
+        rand_hflip = torch.rand(1)[0]
+        rand_vflip = torch.rand(1)[0]
 
         path = self.noise_path[index]
         list_path = sorted(glob.glob(path + "/*"))[:8]
 
         name_folder_image = list_path[0].split("/")[-2].replace("NOISY_", "GT_")
         name_image = list_path[0].split("/")[-1].replace("NOISY_", "GT_")
-        image_gt = Image.open(os.path.join(self.gt_dir, name_folder_image, name_image)).convert('RGB')
+        image_gt = random_flip(Image.open(os.path.join(self.gt_dir, name_folder_image, name_image)).convert('RGB'),rand_hflip,rand_vflip)
         image_gt = self.transforms(image_gt)
         ############
         # Choose randcrop
@@ -173,7 +179,7 @@ class MultiLoader(data.Dataset):
         ##########
         image_gt_crop = image_gt[:, idx_h:(idx_h + h), idx_w:(idx_w + w)]
 
-        image_noise = [self.transforms(Image.open(img_path).convert('RGB'))[:, idx_h:(idx_h + h), idx_w:(idx_w + w)] for
+        image_noise = [self.transforms(random_flip(Image.open(img_path).convert('RGB'),rand_hflip,rand_vflip))[:, idx_h:(idx_h + h), idx_w:(idx_w + w)] for
                        img_path in list_path]
         image_noise_burst_crop = torch.stack(image_noise, dim=0)
 
