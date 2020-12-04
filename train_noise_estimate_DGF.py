@@ -1,4 +1,3 @@
-import torch
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.nn as nn
@@ -8,18 +7,16 @@ import numpy as np
 import argparse
 
 import os
-import sys
 import time
 import shutil
 
 from tensorboardX import SummaryWriter
-from torchvision.transforms import transforms
 # import setproctitle
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import SingleLoader_DGF
-from utils.KPN import LossBasic
-from utils.KPN_noise_estimate_DGF import KPN_noise_DGF,Att_KPN_noise_DGF,Att_Weight_KPN_noise_DGF
+from model.KPN import LossBasic
+from model.KPN_noise_estimate_DGF import KPN_noise_DGF,Att_KPN_noise_DGF,Att_Weight_KPN_noise_DGF
 
 
 def train(num_workers, cuda, restart_train, mGPU):
@@ -36,11 +33,11 @@ def train(num_workers, cuda, restart_train, mGPU):
     lr_step_size = 100
     burst_length = args.burst_length
     # checkpoint path
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpoints/" + args.checkpoint
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
     # logs path
-    logs_dir = "models/logs/" + args.checkpoint
+    logs_dir = "checkpoints/logs/" + args.checkpoint
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
     shutil.rmtree(logs_dir)

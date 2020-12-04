@@ -1,11 +1,10 @@
 import argparse
-import os
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
+from utils.training_util import load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider import *
-from utils.KPN_noise_estimate import KPN_noise,Att_KPN_noise,Att_Weight_KPN_noise
+from model.KPN_noise_estimate import KPN_noise,Att_KPN_noise,Att_Weight_KPN_noise
 
 from collections import OrderedDict
 
@@ -16,7 +15,7 @@ def eval(args):
     print('Eval Process......')
     burst_length = 8
     # print(args.checkpoint)
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpoints/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # the path for saving eval images

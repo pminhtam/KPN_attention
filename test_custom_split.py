@@ -1,11 +1,11 @@
 import argparse
 import os
 import torch
-from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
+from utils.training_util import load_checkpoint
 from utils.data_provider_DGF import pixel_unshuffle
-from utils.KPN import KPN,LossFunc
-from utils.Att_KPN import Att_KPN
-from utils.Att_Weight_KPN import Att_Weight_KPN
+from model.KPN import KPN
+from model.Att_KPN import Att_KPN
+from model.Att_Weight_KPN import Att_Weight_KPN
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
@@ -83,7 +83,7 @@ def test_multi(args):
     #     upMode="bilinear",
     #     core_bias=False
     # )
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpoints/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model
@@ -99,7 +99,7 @@ def test_multi(args):
     #     model.load_state_dict(ckpt['state_dict'])
 
     #############################################
-    # checkpoint_dir = "models/" + "kpn"
+    # checkpoint_dir = "checkpoints/" + "kpn"
     # if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
     #     print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # # load trained model
@@ -188,7 +188,7 @@ def test_multi(args):
             plt.imshow(np.array(trans(image_noise[0][1])))
             plt.title("noise ", fontsize=26)
             plt.suptitle(str(i)+"   UP   :  PSNR : "+ str(psnr_t_up)+" :  SSIM : "+ str(ssim_t_up)+ " : DOWN   :  PSNR : "+ str(psnr_t_down)+" :  SSIM : "+ str(ssim_t_down), fontsize=26)
-            plt.savefig("models/"+ args.model_type+str(i)+'.png',pad_inches=0)
+            plt.savefig("checkpoints/"+ args.model_type+str(i)+'.png',pad_inches=0)
         """
         # plt.show()
 

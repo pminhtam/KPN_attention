@@ -1,6 +1,6 @@
-from utils.KPN import KPN
-from utils.Att_KPN import Att_KPN
-from utils.Att_Weight_KPN import Att_Weight_KPN
+from model.KPN import KPN
+from model.Att_KPN import Att_KPN
+from model.Att_Weight_KPN import Att_Weight_KPN
 import torch.nn as nn
 from guided_filter_pytorch.guided_filter import ConvGuidedFilter
 

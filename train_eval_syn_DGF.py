@@ -1,12 +1,9 @@
-import torch
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import numpy as np
 import argparse
-import os
-import sys
 import time
 import shutil
 from tensorboardX import SummaryWriter
@@ -15,8 +12,8 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
-from utils.KPN import LossBasic
-from utils.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF
+from model.KPN import LossBasic
+from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
     # torch.set_num_threads(num_threads)
@@ -32,11 +29,11 @@ def train(num_workers, cuda, restart_train, mGPU):
     lr_step_size = 100
     burst_length = args.burst_length
     # checkpoint path
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpoints/" + args.checkpoint
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
     # logs path
-    logs_dir = "models/logs/" + args.checkpoint
+    logs_dir = "checkpoints/logs/" + args.checkpoint
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
     shutil.rmtree(logs_dir)
@@ -241,7 +238,7 @@ def eval(args):
     print('Eval Process......')
     burst_length = 16
 
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpointa/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # the path for saving eval images

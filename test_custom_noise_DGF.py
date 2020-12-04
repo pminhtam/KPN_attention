@@ -1,9 +1,9 @@
 import argparse
 import os
 import torch
-from utils.training_util import MovingAverage, load_checkpoint
+from utils.training_util import load_checkpoint
 from utils.data_provider_DGF import pixel_unshuffle
-from utils.KPN_noise_estimate_DGF import KPN_noise_DGF,Att_KPN_noise_DGF,Att_Weight_KPN_noise_DGF
+from model.KPN_noise_estimate_DGF import KPN_noise_DGF,Att_KPN_noise_DGF,Att_Weight_KPN_noise_DGF
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,7 +11,6 @@ import torchvision.transforms as transforms
 import glob
 from PIL import Image
 import time
-from torch.nn import functional as F
 from utils.training_util import calculate_psnr, calculate_ssim
 import math
 
@@ -73,7 +72,7 @@ def test_multi(args):
         print(" Model type not valid")
         return
 
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpoints/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model

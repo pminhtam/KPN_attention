@@ -1,12 +1,9 @@
 import argparse
-import os
-import argparse
-import torch.nn as nn
-from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
+from utils.training_util import load_checkpoint
 from utils.data_provider import *
-from utils.KPN import KPN,LossFunc
-from utils.Att_KPN import Att_KPN
-from utils.Att_Weight_KPN import Att_Weight_KPN
+from model.KPN import KPN
+from model.Att_KPN import Att_KPN
+from model.Att_Weight_KPN import Att_Weight_KPN
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 
@@ -98,7 +95,7 @@ def test_multi(dir,image_size,args):
         upMode="bilinear",
         core_bias=False
     )
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpoints/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model
@@ -112,7 +109,7 @@ def test_multi(dir,image_size,args):
     # model.load_state_dict(ckpt['state_dict'])
     model.load_state_dict(new_state_dict)
 
-    checkpoint_dir = "models/" + "kpn"
+    checkpoint_dir = "checkpoints/" + "kpn"
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model
@@ -155,20 +152,22 @@ def test_multi(dir,image_size,args):
         print("Time : ", time.time()-begin)
         print(pred_i.size())
         print(pred.size())
-        # print(np.array(trans(mf8[0])))
-        plt.figure(figsize=(10, 3))
-        plt.subplot(1,3,1)
-        plt.imshow(np.array(trans(pred[0])))
-        plt.title("denoise attKPN")
-        plt.subplot(1,3,2)
-        plt.imshow(np.array(trans(pred2[0])))
-        plt.title("denoise KPN")
-        # plt.show()
-        plt.subplot(1,3,3)
-        plt.imshow(np.array(trans(image_noise[0][0])))
-        plt.title("noise ")
-        plt.savefig("models/"+str(i)+'.png',pad_inches=0)
-        # plt.show()
+        if args.save_img != '':
+            # print(np.array(trans(mf8[0])))
+            plt.figure(figsize=(10, 3))
+            plt.subplot(1,3,1)
+            plt.imshow(np.array(trans(pred[0])))
+            plt.title("denoise attKPN")
+            plt.subplot(1,3,2)
+            plt.imshow(np.array(trans(pred2[0])))
+            plt.title("denoise KPN")
+            # plt.show()
+            plt.subplot(1,3,3)
+            plt.imshow(np.array(trans(image_noise[0][0])))
+            plt.title("noise ")
+            image_name = str(i)
+            plt.savefig(os.path.join(args.save_img,image_name + "_" + args.checkpoint + '.png'),pad_inches=0)
+            # plt.show()
 
 if __name__ == "__main__":
     # argparse
@@ -181,6 +180,7 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='attwkpn',
                         help='the checkpoint to eval')
     parser.add_argument('--model_type',default="attWKPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--save_img', "-s" ,default="", type=str, help='save image in eval_img folder ')
 
     args = parser.parse_args()
     #

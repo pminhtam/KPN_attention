@@ -1,8 +1,7 @@
-import torch
-from utils.KPN_noise_estimate import KPN_noise,Att_KPN_noise,Att_Weight_KPN_noise
+from model.KPN_noise_estimate import KPN_noise,Att_KPN_noise,Att_Weight_KPN_noise
 import torch.nn as nn
 from guided_filter_pytorch.guided_filter import ConvGuidedFilter
-from utils.noise_estimation import Network as NoiseEstimate
+
 
 class KPN_noise_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,

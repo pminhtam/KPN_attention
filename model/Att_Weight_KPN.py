@@ -1,17 +1,14 @@
-import torch
-import torch.nn as nn
-from utils.KPN import *
+from model.KPN import *
 
-class Att_KPN(nn.Module):
+class Att_Weight_KPN(nn.Module):
     def __init__(self, color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
                  channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
-        super(Att_KPN, self).__init__()
+        super(Att_Weight_KPN, self).__init__()
         self.upMode = upMode
         self.burst_length = burst_length
         self.core_bias = core_bias
         self.color_channel = 3 if color else 1
         in_channel = (3 if color else 1) * (burst_length if blind_est else burst_length + 1)
-
         out_channel = (
             2 * sum(kernel_size) if sep_conv else np.sum(np.array(kernel_size) ** 2)) * burst_length
 
@@ -25,11 +22,27 @@ class Att_KPN(nn.Module):
         # 6~8层要先上采样再卷积
         self.conv6 = Basic(512 + 512, 512, channel_att=channel_att, spatial_att=spatial_att)
         self.conv7 = Basic(256 + 512, 256, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv8 = Basic(256 + 128, out_channel, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv9 = Basic(out_channel+64, out_channel, channel_att=channel_att, spatial_att=spatial_att)
-        self.outc = nn.Sequential(
+        self.conv8 = Basic(256 + 128, 256, channel_att=channel_att, spatial_att=spatial_att)
+        self.conv9 = Basic(256+64, out_channel, channel_att=channel_att, spatial_att=spatial_att)
+        self.out_kernel = nn.Sequential(
             Basic(out_channel, out_channel),
             nn.Conv2d(out_channel, out_channel, 1, 1, 0)
+        )
+        # residual branch
+        self.conv10 = Basic(256+64, 128, channel_att=channel_att, spatial_att=spatial_att)
+        self.out_res = nn.Sequential(
+            nn.Conv2d(128, 64, 1, 1, 0),
+            Basic(64, self.burst_length*self.color_channel, g=1),
+            nn.Conv2d(self.burst_length*self.color_channel, self.burst_length*self.color_channel, 1, 1, 0)
+        )
+
+        self.conv11 = Basic(256+64, 128, channel_att=False, spatial_att=False)
+        self.out_weight = nn.Sequential(
+            nn.Conv2d(128, 64, 1, 1, 0),
+            Basic(64, self.burst_length*self.color_channel, g=1),
+            nn.Conv2d(self.burst_length*self.color_channel, self.burst_length*self.color_channel, 1, 1, 0),
+            # nn.Softmax(dim=1)  #softmax 效果较差
+            nn.Sigmoid()
         )
 
         self.kernel_pred = KernelConv(kernel_size, sep_conv, self.core_bias)
@@ -64,6 +77,25 @@ class Att_KPN(nn.Module):
         conv8 = self.conv8(torch.cat([conv2, F.interpolate(conv7, scale_factor=2, mode=self.upMode)], dim=1))
         conv9 = self.conv9(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
         # return channel K*K*N
-        core = self.outc(conv9)
+        core = self.out_kernel(conv9)
 
-        return self.kernel_pred(data, core, white_level)
+        # residual branch
+        conv10 = self.conv10(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
+        residual = self.out_res(conv10)
+
+        conv11 = self.conv11(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
+        weight = self.out_weight(conv11)
+
+        pred_i, _ = self.kernel_pred(data, core, white_level)
+        # only for gray images now, supporting for RGB could be programed later
+        # print('weight', weight.size())
+        # print('pred_i', pred_i.size())
+
+        weight = weight.view(pred_i.size())
+        residual = residual.view(pred_i.size())
+
+        pred_i = weight*pred_i + (1-weight)*residual
+
+        pred = torch.mean(pred_i, dim=1, keepdim=False)
+        # return pred_i, pred, residual
+        return pred_i, pred

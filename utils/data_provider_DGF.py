@@ -96,6 +96,10 @@ class SingleLoader_DGF(data.Dataset):
 
         image_noise = random_flip(Image.open(self.noise_path[index]).convert('RGB'),rand_hflip,rand_vflip)
         image_noise = random_rotate(image_noise,rand_affine,angle)
+
+        # name_image_gt = self.noise_path[index].split("/")[-1]
+        # image_folder_name_gt = self.noise_path[index].split("/")[-2].replace("NOISY_","GT_")
+        # image_gt = random_flip(Image.open(os.path.join(self.gt_dir, name_image_gt)).convert('RGB'), rand_hflip, rand_vflip)
         name_image_gt = self.noise_path[index].split("/")[-1].replace("NOISY_","GT_")
         image_folder_name_gt = self.noise_path[index].split("/")[-2].replace("NOISY_","GT_")
         image_gt = random_flip(Image.open(os.path.join(self.gt_dir,image_folder_name_gt, name_image_gt)).convert('RGB'),rand_hflip,rand_vflip)

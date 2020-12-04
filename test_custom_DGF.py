@@ -1,10 +1,7 @@
 import argparse
-import os
-import argparse
-import torch.nn as nn
 from utils.training_util import load_checkpoint
 from utils.data_provider import *
-from utils.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF
+from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF
 
 from collections import OrderedDict
 import matplotlib.pyplot as plt
@@ -71,7 +68,7 @@ def test_multi(args):
     else:
         print(" Model type not valid")
         return
-    checkpoint_dir = "models/" + args.checkpoint
+    checkpoint_dir = "checkpoints/" + args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model
@@ -148,7 +145,7 @@ def test_multi(args):
             plt.title("noise ", fontsize=26)
             plt.axis("off")
             plt.suptitle(str(i)+"   UP   :  PSNR : "+ str(psnr_t)+" :  SSIM : "+ str(ssim_t), fontsize=26)
-            plt.savefig("models/22_DGF_" + args.checkpoint+str(i)+'.png',pad_inches=0)
+            plt.savefig("checkpoints/22_DGF_" + args.checkpoint+str(i)+'.png',pad_inches=0)
         """
 
 if __name__ == "__main__":

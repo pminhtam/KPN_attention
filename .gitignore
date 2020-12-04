@@ -4,8 +4,8 @@
 !.gitignore
 img/
 log/
-model
-models
+#model
+checkpoints
 *.png
 *.jpg
 .idea
