@@ -13,7 +13,7 @@ from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
 from model.KPN import LossBasic
-from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF
+from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
     # torch.set_num_threads(num_threads)
@@ -50,6 +50,18 @@ def train(num_workers, cuda, restart_train, mGPU):
     # model here
     if args.model_type == "attKPN":
         model = Att_KPN_DGF(
+            color=color,
+            burst_length=burst_length,
+            blind_est=True,
+            kernel_size=[5],
+            sep_conv=False,
+            channel_att=True,
+            spatial_att=True,
+            upMode="bilinear",
+            core_bias=False
+        )
+    elif args.model_type == "attWKPN_Wave":
+        model = Att_KPN_Wavelet_DGF(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -380,7 +392,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--color','-cl' , default=True, action='store_true')
-    parser.add_argument('--model_type','-m' ,default="KPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--model_type','-m' ,default="KPN", help='type of model : KPN, attKPN, attWKPN, attWKPN_Wave')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
 
     args = parser.parse_args()
