@@ -72,7 +72,7 @@ def test_multi(args):
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model
-    ckpt = load_checkpoint(checkpoint_dir,cuda=device=='cuda')
+    ckpt = load_checkpoint(checkpoint_dir,cuda=device=='cuda',best_or_latest=args.load_type)
     state_dict = ckpt['state_dict']
 
     # if not args.cuda:
@@ -159,6 +159,7 @@ if __name__ == "__main__":
                         help='the checkpoint to eval')
     parser.add_argument('--model_type','-m' ,default="attKPN", help='type of model : KPN, attKPN, attWKPN')
     parser.add_argument('--save_img', "-s" ,default="", type=str, help='save image in eval_img folder ')
+    parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
 
     args = parser.parse_args()
     #

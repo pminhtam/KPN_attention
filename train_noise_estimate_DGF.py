@@ -115,7 +115,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     average_loss = MovingAverage(save_freq)
     if not restart_train:
         try:
-            checkpoint = load_checkpoint(checkpoint_dir,cuda , 'latest')
+            checkpoint = load_checkpoint(checkpoint_dir,cuda , best_or_latest=args.load_type)
             start_epoch = checkpoint['epoch']
             global_step = checkpoint['global_iter']
             best_loss = checkpoint['best_loss']
@@ -243,6 +243,7 @@ if __name__ == '__main__':
                         help='the checkpoint to eval')
     parser.add_argument('--color','-cl' , default=True, action='store_true')
     parser.add_argument('--model_type', '-m' , default="KPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
 
     args = parser.parse_args()
     #

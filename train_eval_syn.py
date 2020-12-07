@@ -303,7 +303,7 @@ def eval(args):
     if args.mGPU:
         model = nn.DataParallel(model)
     # load trained model
-    ckpt = load_checkpoint(checkpoint_dir,cuda=args.cuda)
+    ckpt = load_checkpoint(checkpoint_dir,cuda=args.cuda,best_or_latest=args.load_type)
     model.load_state_dict(ckpt['state_dict'])
     print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
     # switch the eval mode
@@ -377,6 +377,7 @@ if __name__ == '__main__':
                         help='the checkpoint to eval')
     parser.add_argument('--color', '-cl' ,default=True, action='store_true')
     parser.add_argument('--model_type', '-m' ,default="KPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
 
     args = parser.parse_args()
     #

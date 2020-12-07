@@ -78,7 +78,7 @@ def eval(args):
     if args.mGPU:
         model = nn.DataParallel(model)
     # load trained model
-    ckpt = load_checkpoint(checkpoint_dir,cuda=args.cuda)
+    ckpt = load_checkpoint(checkpoint_dir,cuda=args.cuda,best_or_latest=args.load_type)
 
     state_dict = ckpt['state_dict']
     if not args.mGPU:
@@ -151,6 +151,7 @@ if __name__ == "__main__":
     parser.add_argument('--color',default=True, action='store_true')
     parser.add_argument('--model_type',default="KPN", help='type of model : KPN, attKPN, attWKPN')
     parser.add_argument('--save_img',default=False, action='store_true', help='save image in eval_img folder ')
+    parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
 
     args = parser.parse_args()
     #
