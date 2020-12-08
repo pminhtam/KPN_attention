@@ -108,7 +108,7 @@ def test_multi(args):
     for i in range(len(noisy_path)):
         image_noise,image_noise_hr = load_data(noisy_path[i],burst_length)
         image_noise_hr = image_noise_hr.to(device)
-        begin = time.time()
+        # begin = time.time()
         image_noise_batch = image_noise.to(device)
         # print(image_noise_batch.size())
         burst_size = image_noise_batch.size()[1]
@@ -131,7 +131,7 @@ def test_multi(args):
         # print(pred[0].size())
         psnr_t = calculate_psnr(pred, gt)
         ssim_t = calculate_ssim(pred, gt)
-        print(i,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t), "   time: ",time.time()-begin)
+        print(i,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t))
         if args.save_img != '':
             if not os.path.exists(args.save_img):
                 os.makedirs(args.save_img)
