@@ -1,7 +1,7 @@
 import argparse
 from utils.training_util import load_checkpoint
 from utils.data_provider import *
-from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF
+from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 from collections import OrderedDict
 import matplotlib.pyplot as plt
@@ -31,6 +31,18 @@ def test_multi(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if args.model_type == "attKPN":
         model = Att_KPN_DGF(
+            color=color,
+            burst_length=burst_length,
+            blind_est=True,
+            kernel_size=[5],
+            sep_conv=False,
+            channel_att=True,
+            spatial_att=True,
+            upMode="bilinear",
+            core_bias=False
+        )
+    elif args.model_type == "attKPN_Wave":
+        model = Att_KPN_Wavelet_DGF(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -119,7 +131,7 @@ def test_multi(args):
         # print(pred[0].size())
         psnr_t = calculate_psnr(pred, gt)
         ssim_t = calculate_ssim(pred, gt)
-        print(i,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t))
+        print(i,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t), "   time: ",time.time()-begin)
         if args.save_img != '':
             if not os.path.exists(args.save_img):
                 os.makedirs(args.save_img)
@@ -157,7 +169,7 @@ if __name__ == "__main__":
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_dgf',
                         help='the checkpoint to eval')
-    parser.add_argument('--model_type','-m' ,default="attKPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--model_type','-m' ,default="attKPN", help='type of model : KPN, attKPN, attWKPN , attKPN_Wave')
     parser.add_argument('--save_img', "-s" ,default="", type=str, help='save image in eval_img folder ')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
 

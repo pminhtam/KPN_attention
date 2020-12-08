@@ -14,7 +14,7 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider import *
-from model.KPN import LossFunc
+from utils.loss import LossFunc
 from model.KPN_noise_estimate import KPN_noise,Att_KPN_noise,Att_Weight_KPN_noise
 
 

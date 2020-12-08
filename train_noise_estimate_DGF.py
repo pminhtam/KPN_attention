@@ -15,7 +15,7 @@ from tensorboardX import SummaryWriter
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import SingleLoader_DGF
-from model.KPN import LossBasic
+from utils.loss import LossBasic
 from model.KPN_noise_estimate_DGF import KPN_noise_DGF,Att_KPN_noise_DGF,Att_Weight_KPN_noise_DGF
 
 

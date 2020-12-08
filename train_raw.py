@@ -17,7 +17,8 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from raw_process.raw_data_provider import MultiLoader
-from model.KPN import KPN,LossFunc
+from model.KPN import KPN
+from utils.loss import LossFunc
 from model.Att_KPN import Att_KPN
 from model.Att_Weight_KPN import Att_Weight_KPN
 

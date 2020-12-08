@@ -12,7 +12,7 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
-from model.KPN import LossBasic
+from utils.loss import LossBasic,WaveletLoss
 from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
@@ -60,7 +60,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             upMode="bilinear",
             core_bias=False
         )
-    elif args.model_type == "attWKPN_Wave":
+    elif args.model_type == "attKPN_Wave":
         model = Att_KPN_Wavelet_DGF(
             color=color,
             burst_length=burst_length,
@@ -115,6 +115,8 @@ def train(num_workers, cuda, restart_train, mGPU):
     #     beta=100.0
     # )
     loss_func = LossBasic()
+    if args.wavelet_loss:
+        loss_func2 = WaveletLoss()
     # Optimizer here
     optimizer = optim.Adam(
         model.parameters(),
@@ -186,6 +188,8 @@ def train(num_workers, cuda, restart_train, mGPU):
             # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             loss_basic = loss_func(pred, gt)
             loss = loss_basic
+            if args.wavelet_loss:
+                loss += loss_func2(pred,gt)
             # backward
             optimizer.zero_grad()
             loss.backward()
@@ -199,9 +203,9 @@ def train(num_workers, cuda, restart_train, mGPU):
                 gt = gt.unsqueeze(1)
             if global_step %loss_freq ==0:
                 # calculate PSNR
-                print("burst_noise  : ",burst_noise.size())
-                print("gt   :  ",gt.size())
-                print("feedData   : ", feedData.size())
+                # print("burst_noise  : ",burst_noise.size())
+                # print("gt   :  ",gt.size())
+                # print("feedData   : ", feedData.size())
                 psnr = calculate_psnr(pred, gt)
                 ssim = calculate_ssim(pred, gt)
 
@@ -394,6 +398,7 @@ if __name__ == '__main__':
     parser.add_argument('--color','-cl' , default=True, action='store_true')
     parser.add_argument('--model_type','-m' ,default="KPN", help='type of model : KPN, attKPN, attWKPN, attWKPN_Wave')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
+    parser.add_argument('--wavelet_loss','-wl' , default=True, action='store_true')
 
     args = parser.parse_args()
     #
