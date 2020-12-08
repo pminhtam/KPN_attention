@@ -18,7 +18,7 @@ from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from raw_process.raw_data_provider import MultiLoader
 from model.KPN import KPN
-from utils.loss import LossFunc
+from utils.loss import LossFunc,WaveletLoss
 from model.Att_KPN import Att_KPN
 from model.Att_Weight_KPN import Att_Weight_KPN
 
@@ -109,7 +109,9 @@ def train(num_workers, cuda, restart_train, mGPU):
         alpha=0.9998,
         beta=100.0
     )
-
+    if args.wavelet_loss:
+        print("Use wavelet loss")
+        loss_func2 = WaveletLoss()
     # Optimizer here
     optimizer = optim.Adam(
         model.parameters(),
@@ -176,6 +178,10 @@ def train(num_workers, cuda, restart_train, mGPU):
             #
             loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             loss = loss_basic + loss_anneal
+            if args.wavelet_loss:
+                loss_wave = loss_func2(pred,gt)
+                # print(loss_wave)
+                loss = loss_basic + loss_anneal + loss_wave
             # backward
             optimizer.zero_grad()
             loss.backward()
@@ -382,6 +388,7 @@ if __name__ == '__main__':
     parser.add_argument('--color','-cl' , default=False, action='store_true')
     parser.add_argument('--model_type', '-m' , default="KPN", help='type of model : KPN, attKPN, attWKPN')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
+    parser.add_argument('--wavelet_loss','-wl' , default=False, action='store_true')
 
     args = parser.parse_args()
     #

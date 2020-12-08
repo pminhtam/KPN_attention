@@ -15,7 +15,7 @@ from tensorboardX import SummaryWriter
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import SingleLoader_DGF
-from utils.loss import LossBasic
+from utils.loss import LossBasic,WaveletLoss
 from model.KPN_noise_estimate_DGF import KPN_noise_DGF,Att_KPN_noise_DGF,Att_Weight_KPN_noise_DGF
 
 
@@ -100,7 +100,9 @@ def train(num_workers, cuda, restart_train, mGPU):
 
     # loss function here
     loss_func = LossBasic()
-
+    if args.wavelet_loss:
+        print("Use wavelet loss")
+        loss_func2 = WaveletLoss()
     # Optimizer here
     optimizer = optim.Adam(
         model.parameters(),
@@ -164,6 +166,10 @@ def train(num_workers, cuda, restart_train, mGPU):
             #
             loss_basic = loss_func(pred, gt)
             loss = loss_basic
+            if args.wavelet_loss:
+                loss_wave = loss_func2(pred,gt)
+                # print(loss_wave)
+                loss = loss_basic + loss_wave
             # backward
             optimizer.zero_grad()
             loss.backward()
@@ -244,6 +250,7 @@ if __name__ == '__main__':
     parser.add_argument('--color','-cl' , default=True, action='store_true')
     parser.add_argument('--model_type', '-m' , default="KPN", help='type of model : KPN, attKPN, attWKPN')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
+    parser.add_argument('--wavelet_loss','-wl' , default=False, action='store_true')
 
     args = parser.parse_args()
     #
