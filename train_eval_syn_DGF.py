@@ -12,7 +12,7 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
-from utils.loss import LossBasic,WaveletLoss
+from utils.loss import LossBasic,WaveletLoss,tv_loss
 from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
