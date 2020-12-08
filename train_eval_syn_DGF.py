@@ -116,6 +116,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     # )
     loss_func = LossBasic()
     if args.wavelet_loss:
+        print("Use wavelet loss")
         loss_func2 = WaveletLoss()
     # Optimizer here
     optimizer = optim.Adam(
@@ -241,6 +242,9 @@ def train(num_workers, cuda, restart_train, mGPU):
                 save_checkpoint(
                     save_dict, is_best, checkpoint_dir, global_step, max_keep=10
                 )
+                print('Save   : {:-4d}\t| epoch {:2d}\t| step {:4d}\t| loss_basic: {:.4f}\t|'
+                      ' loss: {:.4f}'
+                      .format(global_step, epoch, step, loss_basic, loss))
             global_step += 1
         print('Epoch {} is finished, time elapsed {:.2f} seconds.'.format(epoch, time.time()-epoch_start_time))
         lr_cur = [param['lr'] for param in optimizer.param_groups]
