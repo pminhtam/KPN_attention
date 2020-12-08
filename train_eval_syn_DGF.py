@@ -22,7 +22,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     batch_size = args.batch_size
     lr = 2e-4
     lr_decay = 0.89125093813
-    n_epoch = 250
+    n_epoch = args.epoch
     # num_workers = 8
     save_freq = args.save_every
     loss_freq = args.loss_every
