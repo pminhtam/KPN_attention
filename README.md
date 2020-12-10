@@ -63,6 +63,7 @@ CUDA_VISIBLE_DEVICES=1 python test_custom_DGF.py -n ../FullTest/noisy/ -g ../Ful
 - Add noise estimate model to end-to-end denoising model
 - Add KPN_Wave : replace **polling** layer by **Wavelet pooling**, **Upsampling** by **inverse wavelet pooling**. (*Att_KPN_Wavelet_DGF*)
 - Add NonKPN model
+- Add synthetic data loader
 ## Name 
 
 *_custom  : load image from unstruct folder, print or save image for report
