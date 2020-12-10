@@ -12,6 +12,7 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
+from utils.data_provider_DGF_synthetic import SingleLoader_DGF_synth
 from utils.loss import LossBasic,WaveletLoss,tv_loss,LossAnneal_i
 from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
@@ -40,7 +41,13 @@ def train(num_workers, cuda, restart_train, mGPU):
     log_writer = SummaryWriter(logs_dir)
 
     # dataset and dataloader
-    data_set = SingleLoader_DGF(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size,burst_length=burst_length)
+    if args.data_type == 'real':
+        data_set = SingleLoader_DGF(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size,burst_length=burst_length)
+    elif args.data_type == "synth":
+        data_set = SingleLoader_DGF_synth(gt_dir=args.gt_dir,image_size=args.image_size,burst_length=burst_length)
+    else:
+        print("Wrong type data")
+        return
     data_loader = DataLoader(
         data_set,
         batch_size=batch_size,
@@ -391,6 +398,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='parameters for training')
     parser.add_argument('--noise_dir','-n', default='/home/dell/Downloads/noise', help='path to noise folder image')
     parser.add_argument('--gt_dir', '-g' , default='/home/dell/Downloads/gt', help='path to gt folder image')
+    parser.add_argument('--data_type', '-dt' , default='real', help='real | synth')
     parser.add_argument('--image_size', '-sz' , default=128, type=int, help='size of image')
     parser.add_argument('--epoch', '-e' ,default=1000, type=int, help='batch size')
     parser.add_argument('--batch_size','-bs' ,  default=2, type=int, help='batch size')
