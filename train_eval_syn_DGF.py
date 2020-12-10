@@ -413,7 +413,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--color','-cl' , default=True, action='store_true')
-    parser.add_argument('--model_type','-m' ,default="KPN", help='type of model : KPN, attKPN, attWKPN, attWKPN_Wave')
+    parser.add_argument('--model_type','-m' ,default="KPN", help='type of model : KPN, attKPN, attWKPN, attKPN_Wave')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
     parser.add_argument('--wavelet_loss','-wl' , default=False, action='store_true')
 
