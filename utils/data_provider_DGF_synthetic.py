@@ -59,11 +59,9 @@ class SingleLoader_DGF_synth(data.Dataset):
         while nw < 0 or nh < 0:
             print("del  : ",index,'  with size :', image_gt.size)
             del self.gt_path[index]
-            try:
-                image_gt = Image.open(self.gt_path[index]).convert('RGB')
-            except:
-                index = index -1
-                image_gt = Image.open(self.gt_path[index]).convert('RGB')
+            if index >= len(self.gt_path):
+                index = len(self.gt_path) -1
+            image_gt = Image.open(self.gt_path[index]).convert('RGB')
             nw = image_gt.size[-1] - self.image_size
             nh = image_gt.size[-2] - self.image_size
         image_gt = random_flip(image_gt,rand_hflip,rand_vflip)
