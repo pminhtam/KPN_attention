@@ -56,7 +56,7 @@ class SingleLoader_DGF_synth(data.Dataset):
         # print(image_gt.size)
         nw = image_gt.size[-1] - self.image_size
         nh = image_gt.size[-2] - self.image_size
-        while nw < 0 and nh < 0:
+        while nw < 0 or nh < 0:
             del self.gt_path[index]
             print("del  : ",index)
             image_gt = Image.open(self.gt_path[index]).convert('RGB')
