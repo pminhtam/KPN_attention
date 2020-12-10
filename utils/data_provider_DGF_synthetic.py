@@ -57,8 +57,8 @@ class SingleLoader_DGF_synth(data.Dataset):
         nw = image_gt.size[-1] - self.image_size
         nh = image_gt.size[-2] - self.image_size
         while nw < 0 or nh < 0:
+            print("del  : ",index,'  with size :', image_gt.size)
             del self.gt_path[index]
-            print("del  : ",index)
             image_gt = Image.open(self.gt_path[index]).convert('RGB')
             nw = image_gt.size[-1] - self.image_size
             nh = image_gt.size[-2] - self.image_size
