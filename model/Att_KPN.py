@@ -1,4 +1,5 @@
 from model.KPN import *
+from utils.wavelet import DWT,IWT
 
 class Att_KPN(nn.Module):
     def __init__(self, color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
@@ -66,7 +67,6 @@ class Att_KPN(nn.Module):
 
         return self.kernel_pred(data, core, white_level)
 
-from utils.wavelet import DWT,IWT
 class Att_KPN_Wavelet(nn.Module):
     def __init__(self, color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
                  channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):

@@ -109,7 +109,8 @@ class SingleLoader_DGF(data.Dataset):
         image_gt = self.transforms(image_gt)
         image_noise_hr, image_gt_hr = random_cut(image_noise, image_gt, w=self.image_size)
         image_noise_lr = pixel_unshuffle(image_noise_hr,upscale_factor = self.upscale_factor)
-        return image_noise_hr,image_noise_lr, image_gt_hr
+        image_gt_lr = pixel_unshuffle(image_gt_hr,upscale_factor = self.upscale_factor)
+        return image_noise_hr,image_noise_lr, image_gt_hr, image_gt_lr
 
 
     def __len__(self):

@@ -2,22 +2,18 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.nn as nn
 from torch.utils.data import DataLoader
-
 import numpy as np
 import argparse
-
-import os
 import time
 import shutil
-
 from tensorboardX import SummaryWriter
+from torchvision.transforms import transforms
 # import setproctitle
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
-from utils.data_provider_DGF import SingleLoader_DGF
-from utils.loss import LossBasic,WaveletLoss
-from model.KPN_noise_estimate_DGF import KPN_noise_DGF,Att_KPN_noise_DGF,Att_Weight_KPN_noise_DGF
-
+from utils.data_provider_DGF import *
+from utils.loss import LossBasic,WaveletLoss,tv_loss
+from model.NonKPN_DGF import Att_NonKPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
     # torch.set_num_threads(num_threads)
@@ -52,39 +48,15 @@ def train(num_workers, cuda, restart_train, mGPU):
         num_workers=num_workers
     )
     # model here
-    if args.model_type == "attKPN":
-        model = Att_KPN_noise_DGF(
+    if  args.model_type == "attNonKPN_Wave":
+        model = Att_NonKPN_Wavelet_DGF(
             color=color,
             burst_length=burst_length,
-            blind_est=False,
-            kernel_size=[5],
+            blind_est=True,
+            kernel_size=[3],
             sep_conv=False,
             channel_att=True,
             spatial_att=True,
-            upMode="bilinear",
-            core_bias=False
-        )
-    elif args.model_type == "attWKPN":
-        model = Att_Weight_KPN_noise_DGF(
-            color=color,
-            burst_length=burst_length,
-            blind_est=False,
-            kernel_size=[5],
-            sep_conv=False,
-            channel_att=True,
-            spatial_att=True,
-            upMode="bilinear",
-            core_bias=False
-        )
-    elif args.model_type == 'KPN':
-        model = KPN_noise_DGF(
-            color=color,
-            burst_length=burst_length,
-            blind_est=False,
-            kernel_size=[5],
-            sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
             upMode="bilinear",
             core_bias=False
         )
@@ -98,7 +70,6 @@ def train(num_workers, cuda, restart_train, mGPU):
         model = nn.DataParallel(model)
     model.train()
 
-    # loss function here
     loss_func = LossBasic()
     if args.wavelet_loss:
         print("Use wavelet loss")
@@ -115,9 +86,10 @@ def train(num_workers, cuda, restart_train, mGPU):
     scheduler = lr_scheduler.StepLR(optimizer, step_size=lr_step_size, gamma=lr_decay)
 
     average_loss = MovingAverage(save_freq)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not restart_train:
         try:
-            checkpoint = load_checkpoint(checkpoint_dir,cuda , best_or_latest=args.load_type)
+            checkpoint = load_checkpoint(checkpoint_dir,cuda=device=='cuda',best_or_latest=args.load_type)
             start_epoch = checkpoint['epoch']
             global_step = checkpoint['global_iter']
             best_loss = checkpoint['best_loss']
@@ -160,10 +132,17 @@ def train(num_workers, cuda, restart_train, mGPU):
             else:
                 burst_noise = image_noise_lr
                 gt = image_gt_hr
+            if color:
+                b, N, c, h, w = image_noise_lr.size()
+                feedData = image_noise_lr.view(b, -1, h, w)
+            else:
+                feedData = image_noise_lr
+            # print('white_level', white_level, white_level.size())
+            # print("feedData   : ",feedData.size())
             #
-            pred = model(burst_noise,image_noise_hr)
-            # print(pred.size())
+            pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
             #
+            # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             loss_basic = loss_func(pred, gt)
             loss = loss_basic
             if args.wavelet_loss:
@@ -183,13 +162,15 @@ def train(num_workers, cuda, restart_train, mGPU):
                 gt = gt.unsqueeze(1)
             if global_step %loss_freq ==0:
                 # calculate PSNR
-                print("burst_noise  : ",burst_noise.size())
-                print("gt   :  ",gt.size())
+                # print("burst_noise  : ",burst_noise.size())
+                # print("gt   :  ",gt.size())
+                # print("feedData   : ", feedData.size())
                 psnr = calculate_psnr(pred, gt)
                 ssim = calculate_ssim(pred, gt)
 
                 # add scalars to tensorboardX
                 log_writer.add_scalar('loss_basic', loss_basic, global_step)
+                # log_writer.add_scalar('loss_anneal', loss_anneal, global_step)
                 log_writer.add_scalar('loss_total', loss, global_step)
                 log_writer.add_scalar('psnr', psnr, global_step)
                 log_writer.add_scalar('ssim', ssim, global_step)
@@ -219,6 +200,9 @@ def train(num_workers, cuda, restart_train, mGPU):
                 save_checkpoint(
                     save_dict, is_best, checkpoint_dir, global_step, max_keep=10
                 )
+                print('Save   : {:-4d}\t| epoch {:2d}\t| step {:4d}\t| loss_basic: {:.4f}\t|'
+                      ' loss: {:.4f}'
+                      .format(global_step, epoch, step, loss_basic, loss))
             global_step += 1
         print('Epoch {} is finished, time elapsed {:.2f} seconds.'.format(epoch, time.time()-epoch_start_time))
         lr_cur = [param['lr'] for param in optimizer.param_groups]
@@ -228,33 +212,29 @@ def train(num_workers, cuda, restart_train, mGPU):
             for param in optimizer.param_groups:
                 param['lr'] = 5e-6
 
-
 if __name__ == '__main__':
     # argparse
     parser = argparse.ArgumentParser(description='parameters for training')
-    parser.add_argument('--noise_dir','-n',  default='/home/dell/Downloads/noise', help='path to noise folder image')
-    parser.add_argument('--gt_dir','-g' , default='/home/dell/Downloads/gt', help='path to gt folder image')
+    parser.add_argument('--noise_dir','-n', default='/home/dell/Downloads/noise', help='path to noise folder image')
+    parser.add_argument('--gt_dir', '-g' , default='/home/dell/Downloads/gt', help='path to gt folder image')
     parser.add_argument('--image_size', '-sz' , default=128, type=int, help='size of image')
-    parser.add_argument('--batch_size',  '-bs' , default=1, type=int, help='batch size')
-    parser.add_argument('--burst_length', '-b', default=16, type=int, help='batch size')
     parser.add_argument('--epoch', '-e' ,default=1000, type=int, help='batch size')
-    parser.add_argument('--save_every', '-se' , default=200, type=int, help='save_every')
-    parser.add_argument('--loss_every', '-le' ,default=100, type=int, help='loss_every')
-    parser.add_argument('--restart',  '-r' ,  action='store_true', help='Whether to remove all old files and restart the training process')
-    parser.add_argument('--num_workers', '-nw', default=4, type=int, help='number of workers in data loader')
+    parser.add_argument('--batch_size','-bs' ,  default=2, type=int, help='batch size')
+    parser.add_argument('--burst_length', '-b', default=16, type=int, help='batch size')
+    parser.add_argument('--save_every','-se' , default=200, type=int, help='save_every')
+    parser.add_argument('--loss_every', '-le' , default=10, type=int, help='loss_every')
+    parser.add_argument('--restart','-r' ,  action='store_true', help='Whether to remove all old files and restart the training process')
+    parser.add_argument('--num_workers', '-nw', default=2, type=int, help='number of workers in data loader')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--mGPU', '-mg', action='store_true', help='whether to train on multiple GPUs')
-    parser.add_argument('--eval', action='store_true', help='whether to work on the evaluation mode')
-    parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn_noise_dgf',
+    parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--color','-cl' , default=True, action='store_true')
-    parser.add_argument('--model_type', '-m' , default="KPN", help='type of model : KPN, attKPN, attWKPN')
+    parser.add_argument('--model_type','-m' ,default="attNonKPN_Wave", help='type of model : attNonKPN_Wave')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
     parser.add_argument('--wavelet_loss','-wl' , default=False, action='store_true')
 
     args = parser.parse_args()
     #
-    if args.eval:
-        pass
-    else:
-        train(args.num_workers,args.cuda, args.restart, args.mGPU)
+
+    train(args.num_workers,args.cuda, args.restart, args.mGPU)

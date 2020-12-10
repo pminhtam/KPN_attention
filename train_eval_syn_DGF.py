@@ -12,7 +12,7 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
-from utils.loss import LossBasic,WaveletLoss,tv_loss
+from utils.loss import LossBasic,WaveletLoss,tv_loss,LossAnneal_i
 from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
@@ -115,6 +115,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     #     beta=100.0
     # )
     loss_func = LossBasic()
+    loss_func_i = LossAnneal_i()
     if args.wavelet_loss:
         print("Use wavelet loss")
         loss_func2 = WaveletLoss()
@@ -166,12 +167,13 @@ def train(num_workers, cuda, restart_train, mGPU):
 
         # print('='*20, 'lr={}'.format([param['lr'] for param in optimizer.param_groups]), '='*20)
         t1 = time.time()
-        for step, (image_noise_hr,image_noise_lr, image_gt_hr) in enumerate(data_loader):
+        for step, (image_noise_hr,image_noise_lr, image_gt_hr, image_gt_lr) in enumerate(data_loader):
             # print(burst_noise.size())
             # print(gt.size())
             if cuda:
                 burst_noise = image_noise_lr.cuda()
                 gt = image_gt_hr.cuda()
+                image_gt_lr = image_gt_lr.cuda()
                 image_noise_hr = image_noise_hr.cuda()
             else:
                 burst_noise = image_noise_lr
@@ -188,11 +190,12 @@ def train(num_workers, cuda, restart_train, mGPU):
             #
             # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             loss_basic = loss_func(pred, gt)
-            loss = loss_basic
+            loss_i =loss_func_i(global_step, pred_i, image_gt_lr)
+            loss = loss_basic + loss_i
             if args.wavelet_loss:
                 loss_wave = loss_func2(pred,gt)
                 # print(loss_wave)
-                loss = loss_basic + loss_wave
+                loss = loss_basic + loss_wave + loss_i
             # backward
             optimizer.zero_grad()
             loss.backward()
