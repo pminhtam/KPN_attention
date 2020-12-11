@@ -53,6 +53,8 @@ class SingleLoader_DGF_synth(data.Dataset):
         rand_vflip = torch.rand(1)[0]
         rand_affine = torch.rand(1)[0]
         angle = torch.randint(low= -20,high=20,size=(1,))[0]
+        if index >= len(self.gt_path):
+            index = len(self.gt_path) - 1
         image_gt = Image.open(self.gt_path[index]).convert('RGB')
         # print(image_gt.size)
         nw = image_gt.size[-1] - self.image_size
