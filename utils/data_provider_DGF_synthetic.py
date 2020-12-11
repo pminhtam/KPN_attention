@@ -2,13 +2,14 @@ import torch.utils.data as data
 import torch
 from PIL import Image
 import os
-import os.path
+from PIL import ImageFile
 import glob
 import torchvision.transforms as transforms
 import math
 from utils.data_transform import random_flip, random_rotate
 from utils.data_provider_DGF import random_cut,pixel_unshuffle
 ##
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
