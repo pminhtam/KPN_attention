@@ -7,11 +7,24 @@ import torchvision.models as models
 
 # KPN基本网路单元
 class Basic(nn.Module):
-    def __init__(self, in_ch, out_ch, g=16, channel_att=False, spatial_att=False):
+    def __init__(self, in_ch, out_ch, g=16, channel_att=False, spatial_att=False,bn=False):
         super(Basic, self).__init__()
         self.channel_att = channel_att
         self.spatial_att = spatial_att
-        self.conv1 = nn.Sequential(
+        if bn :
+            self.conv1 = nn.Sequential(
+                    nn.Conv2d(in_channels=in_ch, out_channels=out_ch, kernel_size=3, stride=1, padding=1),
+                    nn.BatchNorm2d(out_ch,eps=1e-5, momentum=0.01, affine=True),
+                    nn.ReLU(),
+                    nn.Conv2d(in_channels=out_ch, out_channels=out_ch, kernel_size=3, stride=1, padding=1),
+                    nn.BatchNorm2d(out_ch,eps=1e-5, momentum=0.01, affine=True),
+                    nn.ReLU(),
+                    nn.Conv2d(in_channels=out_ch, out_channels=out_ch, kernel_size=3, stride=1, padding=1),
+                    nn.BatchNorm2d(out_ch,eps=1e-5, momentum=0.01, affine=True),
+                    nn.ReLU()
+                )
+        else:
+            self.conv1 = nn.Sequential(
                 nn.Conv2d(in_channels=in_ch, out_channels=out_ch, kernel_size=3, stride=1, padding=1),
                 # nn.BatchNorm2d(out_ch),
                 nn.ReLU(),
@@ -22,7 +35,6 @@ class Basic(nn.Module):
                 # nn.BatchNorm2d(out_ch),
                 nn.ReLU()
             )
-
         if channel_att:
             self.att_c = nn.Sequential(
                 nn.Conv2d(2*out_ch, out_ch//g, 1, 1, 0),

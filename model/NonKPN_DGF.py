@@ -5,7 +5,7 @@ from guided_filter_pytorch.guided_filter import ConvGuidedFilter
 
 class Att_NonKPN_Wavelet_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[3], sep_conv=False,
-                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
+                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False,bn=False):
         super(Att_NonKPN_Wavelet_DGF, self).__init__()
         self.Att_NonKPN_Wavelet = Att_NonKPN_Wavelet(
             color=color,
@@ -15,7 +15,8 @@ class Att_NonKPN_Wavelet_DGF(nn.Module):
             channel_att=channel_att,
             spatial_att=spatial_att,
             upMode=upMode,
-            core_bias=core_bias
+            core_bias=core_bias,
+            bn=bn
         )
         self.gf = ConvGuidedFilter(radius=1)
 

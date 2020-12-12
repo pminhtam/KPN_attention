@@ -39,7 +39,8 @@ def test_multi(args):
             channel_att=True,
             spatial_att=True,
             upMode="bilinear",
-            core_bias=False
+            core_bias=False,
+            bn=args.bn
         )
     else:
         print(" Model type not valid")
@@ -135,6 +136,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_type','-m' ,default="attKPN", help='type of model : attNonKPN_Wave')
     parser.add_argument('--save_img', "-s" ,default="", type=str, help='save image in eval_img folder ')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
+    parser.add_argument('--bn','-bn' , default=False, action='store_true', help='Use BatchNorm2d')
 
     args = parser.parse_args()
     #

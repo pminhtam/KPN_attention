@@ -58,7 +58,8 @@ def train(num_workers, cuda, restart_train, mGPU):
             channel_att=True,
             spatial_att=True,
             upMode="bilinear",
-            core_bias=False
+            core_bias=False,
+            bn=args.bn
         )
     else:
         print(" Model type not valid")
@@ -233,6 +234,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_type','-m' ,default="attNonKPN_Wave", help='type of model : attNonKPN_Wave')
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
     parser.add_argument('--wavelet_loss','-wl' , default=False, action='store_true')
+    parser.add_argument('--bn','-bn' , default=False, action='store_true', help='Use BatchNorm2d')
 
     args = parser.parse_args()
     #

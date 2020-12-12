@@ -4,7 +4,7 @@ from utils.wavelet import DWT,IWT
 
 class Att_NonKPN_Wavelet(nn.Module):
     def __init__(self, color=True, burst_length=8, blind_est=False,kernel_size=[3],
-                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
+                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False,bn=False):
         super(Att_NonKPN_Wavelet, self).__init__()
         self.upMode = upMode
         self.burst_length = burst_length
@@ -20,12 +20,12 @@ class Att_NonKPN_Wavelet(nn.Module):
         n_feat = 64
         self.conv1 = Basic(in_channel, n_feat, channel_att=channel_att, spatial_att=spatial_att)
         self.conv2 = Basic(n_feat*4, n_feat*2, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv3 = Basic(n_feat*2*4, n_feat*2*2, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv4 = Basic(n_feat*2*2*4, n_feat*2*2*2, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv5 = Basic(n_feat*2*2*2*4, n_feat*2*2*2*4, channel_att=channel_att, spatial_att=spatial_att)
+        self.conv3 = Basic(n_feat*2*4, n_feat*2*2, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv4 = Basic(n_feat*2*2*4, n_feat*2*2*2, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv5 = Basic(n_feat*2*2*2*4, n_feat*2*2*2*4, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
         # 6~8 Up image
-        self.conv6 = Basic(n_feat*2*2*4, n_feat*2*2*4, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv7 = Basic(n_feat*2*4, n_feat*2*4, channel_att=channel_att, spatial_att=spatial_att)
+        self.conv6 = Basic(n_feat*2*2*4, n_feat*2*2*4, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv7 = Basic(n_feat*2*4, n_feat*2*4, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
         self.conv8 = Basic(n_feat*4, n_feat*4, channel_att=channel_att, spatial_att=spatial_att)
         self.conv9 = Basic(n_feat*2, n_feat, channel_att=channel_att, spatial_att=spatial_att)
 
