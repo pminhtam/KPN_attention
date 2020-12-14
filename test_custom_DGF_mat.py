@@ -105,6 +105,8 @@ def test_multi(args):
     all_noisy_imgs = scipy.io.loadmat(args.noise_dir)['ValidationNoisyBlocksSrgb']
     all_clean_imgs = scipy.io.loadmat(args.gt)['ValidationGtBlocksSrgb']
     i_imgs, i_blocks ,_,_,_ = all_noisy_imgs.shape
+    psnrs = []
+    ssims = []
     for i_img in range(i_imgs):
         for i_block in range(i_blocks):
             image_noise = transforms.ToTensor()(Image.fromarray(all_noisy_imgs[i_img][i_block]))
@@ -133,6 +135,8 @@ def test_multi(args):
             # print(pred[0].size())
             psnr_t = calculate_psnr(pred, gt)
             ssim_t = calculate_ssim(pred, gt)
+            psnrs.append(psnr_t)
+            ssims.append(ssim_t)
             print(i_img , "  " , i_block,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t))
             if args.save_img != '':
                 if not os.path.exists(args.save_img):
@@ -161,7 +165,7 @@ def test_multi(args):
             plt.suptitle(str(i)+"   UP   :  PSNR : "+ str(psnr_t)+" :  SSIM : "+ str(ssim_t), fontsize=26)
             plt.savefig("checkpoints/22_DGF_" + args.checkpoint+str(i)+'.png',pad_inches=0)
         """
-
+    print("   AVG   :  PSNR : "+ str(np.mean(psnrs))+" :  SSIM : "+ str(np.mean(ssims)))
 if __name__ == "__main__":
     # argparse
     parser = argparse.ArgumentParser(description='parameters for training')
