@@ -203,12 +203,12 @@ def train(num_workers, cuda, restart_train, mGPU):
             # print(pred.size())
             # print(gt.size())
             loss_basic = loss_func(pred, gt)
-            loss_i =loss_func_i(global_step, pred_i, image_gt_lr)
-            loss = loss_basic + loss_i
+            # loss_i =loss_func_i(global_step, pred_i, image_gt_lr)
+            loss = loss_basic
             if args.wavelet_loss:
                 loss_wave = loss_func2(pred,gt)
                 # print(loss_wave)
-                loss = loss_basic + loss_wave + loss_i
+                loss = loss_basic + loss_wave
             # backward
             optimizer.zero_grad()
             loss.backward()
