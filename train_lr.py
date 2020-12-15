@@ -72,7 +72,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     elif args.model_type == "attKPN_Wave":
         model = Att_KPN_Wavelet(
             color=color,
-            burst_length=burst_length,
+            burst_length=1,
             blind_est=True,
             kernel_size=[5],
             sep_conv=False,
@@ -84,7 +84,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     elif args.model_type == "attWKPN":
         model = Att_Weight_KPN(
             color=color,
-            burst_length=burst_length,
+            burst_length=1,
             blind_est=True,
             kernel_size=[5],
             sep_conv=False,
@@ -96,7 +96,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     elif args.model_type == "KPN":
         model = KPN(
             color=color,
-            burst_length=burst_length,
+            burst_length=1,
             blind_est=True,
             kernel_size=[5],
             sep_conv=False,
@@ -188,15 +188,16 @@ def train(num_workers, cuda, restart_train, mGPU):
                 burst_noise = image_noise_lr[:,0:1,:,:,:]
                 gt = image_gt_lr[:,0,:,:,:]
             if color:
-                b, N, c, h, w = image_noise_lr.size()
+                b, N, c, h, w = burst_noise.size()
                 # print(image_noise_lr.size())
                 feedData = burst_noise.view(b, -1, h, w)
             else:
                 feedData = image_noise_lr
             # print('white_level', white_level, white_level.size())
             # print("feedData   : ",feedData.size())
+            # print("burst_noise   : ",burst_noise.size())
             #
-            pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
+            pred_i, pred = model(feedData, burst_noise)
             #
             # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             # print(pred.size())
