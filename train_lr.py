@@ -20,6 +20,8 @@ from model.Att_Weight_KPN import Att_Weight_KPN
 import scipy.io
 from collections import OrderedDict
 from test_NonKPN_DGF_mat import load_data
+import matplotlib.pyplot as plt
+
 def train(num_workers, cuda, restart_train, mGPU):
     # torch.set_num_threads(num_threads)
 
@@ -359,26 +361,20 @@ def eval(args):
     ssims = []
     for i_img in range(i_imgs):
         image_noise = transforms.ToTensor()(Image.fromarray(all_noisy_imgs[i_img]))
-        image_noise,image_noise_hr = load_data(image_noise,burst_length)
-        image_noise_hr = image_noise_hr.to(device)
-        # begin = time.time()
-        image_noise_batch = image_noise.to(device)
-        # print(image_noise_batch.size())
-        burst_size = image_noise_batch.size()[1]
-        burst_noise = image_noise_batch.to(device)
-        # print(burst_noise.size())
-        # print(image_noise_hr.size())
+        image_noise_lr,image_noise_hr = load_data(image_noise,burst_length)
+        burst_noise = image_noise_lr[:, 0:1, :, :, :].to(device)
         if color:
             b, N, c, h, w = burst_noise.size()
             feedData = burst_noise.view(b, -1, h, w)
         else:
             feedData = burst_noise
         # print(feedData.size())
-        pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
+        _,pred = model(feedData, burst_noise)
         pred = pred.detach().cpu()
         # print("Time : ", time.time()-begin)
         gt = transforms.ToTensor()(Image.fromarray(all_clean_imgs[i_img]))
-        gt = gt.unsqueeze(0)
+        image_gt_lr,image_gt_hr = load_data(gt,burst_length)
+        gt = image_gt_lr[:, 0, :, :, :].to(device)
         # print(pred_i.size())
         # print(pred[0].size())
         psnr_t = calculate_psnr(pred, gt)
