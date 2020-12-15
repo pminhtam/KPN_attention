@@ -190,7 +190,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             if color:
                 b, N, c, h, w = image_noise_lr.size()
                 # print(image_noise_lr.size())
-                feedData = image_noise_lr.view(b, -1, h, w)
+                feedData = burst_noise.view(b, -1, h, w)
             else:
                 feedData = image_noise_lr
             # print('white_level', white_level, white_level.size())
