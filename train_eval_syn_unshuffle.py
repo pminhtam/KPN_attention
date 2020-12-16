@@ -16,8 +16,7 @@ from utils.data_provider_DGF import *
 from utils.data_provider import pixel_shuffle
 from utils.data_provider_DGF_synthetic import SingleLoader_DGF_synth
 from utils.loss import LossBasic,WaveletLoss,tv_loss,LossAnneal_i
-from model.Att_KPN import Att_KPN,Att_KPN_Wavelet
-from model.Att_Weight_KPN import Att_Weight_KPN
+from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
     # torch.set_num_threads(num_threads)
@@ -59,7 +58,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     )
     # model here
     if args.model_type == "attKPN":
-        model = Att_KPN(
+        model = Att_KPN_DGF(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -71,7 +70,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             core_bias=False
         )
     elif args.model_type == "attKPN_Wave":
-        model = Att_KPN_Wavelet(
+        model = Att_KPN_Wavelet_DGF(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -83,7 +82,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             core_bias=False
         )
     elif args.model_type == "attWKPN":
-        model = Att_Weight_KPN(
+        model = Att_Weight_KPN_DGF(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -95,7 +94,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             core_bias=False
         )
     elif args.model_type == "KPN":
-        model = KPN(
+        model = KPN_DGF(
             color=color,
             burst_length=burst_length,
             blind_est=True,
@@ -198,7 +197,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             #
             pred_i, _ = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
             #
-            pred = pixel_shuffle(pred_i[0],upscale_factor)
+            pred = pixel_shuffle(pred_i[0],upscale_factor).unsqueeze(0)
             # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             loss_basic = loss_func(pred, gt)
             loss_i =loss_func_i(global_step, pred_i, image_gt_lr)
