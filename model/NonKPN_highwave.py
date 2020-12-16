@@ -22,24 +22,34 @@ class Att_NonKPN_Wavelet_highwave(nn.Module):
         n_feat = 64
         # self.conv1 = Basic(in_channel, n_feat, channel_att=channel_att, spatial_att=spatial_att)
         print(in_channel)
-        # self.conv1_low = Basic(in_channel, in_channel, g=in_channel, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv1_high_up = Basic(in_channel*3, n_feat, g=16, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv1_high_down = Basic(n_feat, in_channel*3, g=in_channel, channel_att=channel_att, spatial_att=spatial_att)
-        # self.conv2_low = Basic(in_channel*3, in_channel*3, g=in_channel, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv2_high_up = Basic(in_channel*3, n_feat*2, g=16, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv2_high_down = Basic(n_feat*2, in_channel*3, g=in_channel, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        # self.conv3_low = Basic(in_channel*3*3,in_channel*3*3, g=in_channel*3, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv3_high_up = Basic(in_channel*3,n_feat*4, g=16, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv3_high_down = Basic(n_feat*4,in_channel*3, g=in_channel, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        # self.conv4_low = Basic(in_channel*3*3,in_channel*3*3, g=in_channel*3, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv4_high_up = Basic(in_channel*3, n_feat*4, g=16, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv4_high_down = Basic(n_feat*4, in_channel*3, g=in_channel, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        g = 16
+        self.conv0 = Basic(in_channel, n_feat, channel_att=False, spatial_att=False)
+        self.conv1_high_up = Basic(n_feat*3, n_feat*3*2, g=g, channel_att=False, spatial_att=False)
+        self.conv1_high = Basic(n_feat*3*2, n_feat*3*2, g=g, channel_att=False, spatial_att=False)
+        self.conv1_high_down = Basic(n_feat*3*2, n_feat*3, g=g, channel_att=False, spatial_att=False)
+        self.conv1_low = Basic(n_feat, n_feat, g=g, channel_att=False, spatial_att=False)
+
+        self.conv2_high_up = Basic(n_feat*3, n_feat*3*2, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv2_high = Basic(n_feat*3*2, n_feat*3*2, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv2_high_down = Basic(n_feat*3*2, n_feat*3, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv2_low = Basic(n_feat, n_feat, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+
+        self.conv3_high_up = Basic(n_feat*3,n_feat*3*2, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv3_high = Basic(n_feat*3*2,n_feat*3*2, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv3_high_down = Basic(n_feat*3*2,n_feat*3, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv3_low = Basic(n_feat,n_feat, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+
+        self.conv4_high_up = Basic(n_feat*3, n_feat*3*2, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv4_high = Basic(n_feat*3*2, n_feat*3*2, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv4_high_down = Basic(n_feat*3*2, n_feat*3, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv4_low = Basic(n_feat,n_feat, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
         # self.conv5_low = Basic(in_channel*3*3,in_channel*3*3, g=in_channel*3, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
         # 6~8 Up image
-        self.conv6 = Basic(in_channel, in_channel, g=1, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv7 = Basic(in_channel, in_channel, g=1, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
-        self.conv8 = Basic(in_channel, in_channel, g=1, channel_att=channel_att, spatial_att=spatial_att)
-        self.conv9 = Basic(in_channel, in_channel, g=1, channel_att=channel_att, spatial_att=spatial_att)
+        self.conv6 = Basic(n_feat, n_feat, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv7 = Basic(n_feat, n_feat, g=g, channel_att=channel_att, spatial_att=spatial_att,bn=bn)
+        self.conv8 = Basic(n_feat, n_feat, g=g, channel_att=channel_att, spatial_att=spatial_att)
+        self.conv9 = Basic(n_feat, n_feat, g=g, channel_att=False, spatial_att=False)
+        self.conv_out = Basic(n_feat, out_channel, channel_att=False, spatial_att=False)
 
         self.kernel_size = kernel_size[0]
         # self.outc = nn.Sequential(
@@ -68,30 +78,45 @@ class Att_NonKPN_Wavelet_highwave(nn.Module):
         :param data:
         :return: pred_img_i and img_pred
         """
-        # conv1 = self.conv1(data_with_est) # 3*1024*1024
-        low_conv1, high_conv1 = self.DWT(data_with_est) # 3*512*512, 3*3*512*512
-        conv1 = self.conv1_high_up(high_conv1)  # 3*3*512*512
-        conv1 = self.conv1_high_down(conv1)  # 3*3*512*512
+        conv0 = self.conv0(data_with_est) # 3*1024*1024
+
+        low_conv1, high_conv1 = self.DWT(conv0) # 3*512*512, 3*3*512*512
+        high_conv1 = self.conv1_high_up(high_conv1)  # 3*3*512*512
+        high_conv1 = self.conv1_high(high_conv1)  # 3*3*512*512
+        high_conv1 = self.conv1_high_down(high_conv1)  # 3*3*512*512
+        low_conv1 = self.conv1_low(low_conv1)  # 3*3*512*512
+
         low_conv2, high_conv2 = self.DWT(low_conv1) # 3*256*256 , 3*3*256*256
-        conv2 = self.conv2_high_up(high_conv2) # 3*3*256*256
-        conv2 = self.conv2_high_down(conv2) # 3*3*256*256
+        high_conv2 = self.conv2_high_up(high_conv2) # 3*3*256*256
+        high_conv2 = self.conv2_high(high_conv2) # 3*3*256*256
+        high_conv2 = self.conv2_high_down(high_conv2) # 3*3*256*256
+        low_conv2 = self.conv2_low(low_conv2) #
+
         low_conv3, high_conv3 = self.DWT(low_conv2) # 3*128*128 , 3*3*128*128
-        conv3 = self.conv3_high_up(high_conv3) # 3*3*128*128
-        conv3 = self.conv3_high_down(conv3)
+        high_conv3 = self.conv3_high_up(high_conv3) # 3*3*128*128
+        high_conv3 = self.conv3_high(high_conv3) # 3*3*128*128
+        high_conv3 = self.conv3_high_down(high_conv3)
+        low_conv3 = self.conv3_low(low_conv3) #
+
         low_conv4, high_conv4 = self.DWT(low_conv3) # 3*64*64 , 3*3*64*64
-        conv4 = self.conv4_high_up(high_conv4)  # 3*3*128*64
-        conv4 = self.conv3_high_down(conv4)
+        high_conv4 = self.conv4_high_up(high_conv4)  # 3*3*128*64
+        high_conv4 = self.conv4_high(high_conv4)  # 3*3*128*64
+        high_conv4 = self.conv3_high_down(high_conv4)
+        low_conv4 = self.conv4_low(low_conv4) #
+
         # 开始上采样  同时要进行skip connection
         # conv5 = 3*3*3*3*3*64*64
         # print("conv4.size()  : ",conv4.size())
         # print("low_conv4.size()  : ",low_conv4.size())
-        conv6 = self.conv6(self.IWT(torch.cat([low_conv4,conv4],dim=1)))
+        conv6 = self.conv6(self.IWT(torch.cat([low_conv4,high_conv4],dim=1)))
         # conv6 = 3*3*3*3*128*128
-        conv7 = self.conv7(self.IWT(torch.cat([conv6,conv3],dim=1)))
+        conv7 = self.conv7(self.IWT(torch.cat([conv6,high_conv3],dim=1)))
         # conv7 = 3*3*3*256*256
-        conv8 = self.conv8(self.IWT(torch.cat([conv7,conv2],dim=1)))
+        conv8 = self.conv8(self.IWT(torch.cat([conv7,high_conv2],dim=1)))
         # conv8 = 3*3*512*512
-        out = self.IWT(torch.cat([conv8,conv1],dim=1))
+        conv9 = self.conv9(self.IWT(torch.cat([conv8,high_conv1],dim=1)))
+
+        out = self.conv_out(conv9)
         # out = 3*1024*1024
         # return channel K*K*N
         # core = self.outc(conv9)
