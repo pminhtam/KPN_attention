@@ -197,7 +197,7 @@ def train(num_workers, cuda, restart_train, mGPU):
             #
             pred_i, _ = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
             #
-            pred = pixel_shuffle(pred_i[0],upscale_factor).unsqueeze(0)
+            pred = pixel_shuffle(pred_i,upscale_factor)
             # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
             loss_basic = loss_func(pred, gt)
             loss_i =loss_func_i(global_step, pred_i, image_gt_lr)
