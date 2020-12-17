@@ -157,19 +157,23 @@ def train(num_workers, cuda, restart_train, mGPU):
                 burst_noise = image_noise_lr.cuda()
                 gt = image_gt_hr.cuda()
                 image_noise_hr = image_noise_hr.cuda()
+                noise_gt = (image_noise_hr-image_gt_hr).cuda()
             else:
                 burst_noise = image_noise_lr
                 gt = image_gt_hr
+                noise_gt = image_noise_hr - image_gt_hr
             #
-            pred = model(burst_noise,image_noise_hr)
+            _, pred,noise = model(burst_noise,image_noise_hr)
             # print(pred.size())
             #
             loss_basic = loss_func(pred, gt)
-            loss = loss_basic
+            loss_noise = loss_func(noise,noise_gt)
+            loss = loss_basic + loss_noise
             if args.wavelet_loss:
                 loss_wave = loss_func2(pred,gt)
+                loss_wave_noise = loss_func2(noise,noise_gt)
                 # print(loss_wave)
-                loss = loss_basic + loss_wave
+                loss = loss_basic + loss_wave + loss_noise + loss_wave_noise
             # backward
             optimizer.zero_grad()
             loss.backward()
@@ -236,7 +240,7 @@ if __name__ == '__main__':
     parser.add_argument('--gt_dir','-g' , default='/home/dell/Downloads/gt', help='path to gt folder image')
     parser.add_argument('--image_size', '-sz' , default=128, type=int, help='size of image')
     parser.add_argument('--batch_size',  '-bs' , default=1, type=int, help='batch size')
-    parser.add_argument('--burst_length', '-b', default=16, type=int, help='batch size')
+    parser.add_argument('--burst_length', '-b', default=1, type=int, help='batch size')
     parser.add_argument('--epoch', '-e' ,default=1000, type=int, help='batch size')
     parser.add_argument('--save_every', '-se' , default=200, type=int, help='save_every')
     parser.add_argument('--loss_every', '-le' ,default=100, type=int, help='loss_every')

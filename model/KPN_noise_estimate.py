@@ -30,7 +30,7 @@ class KPN_noise(nn.Module):
         feedData = torch.cat([feedData,noise],dim=1)
         pred_i, pred = self.KPN(feedData, data)
 
-        return pred_i,pred
+        return pred_i,pred,noise
 
 class Att_KPN_noise(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
@@ -56,7 +56,7 @@ class Att_KPN_noise(nn.Module):
         feedData = torch.cat([feedData,noise],dim=1)
         pred_i, pred = self.Att_KPN(feedData, data)
 
-        return pred_i,pred
+        return pred_i,pred,noise
 
 class Att_Weight_KPN_noise(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
@@ -82,4 +82,4 @@ class Att_Weight_KPN_noise(nn.Module):
         feedData = torch.cat([feedData,noise],dim=1)
         pred_i, pred = self.Att_Weight_KPN(feedData, data)
 
-        return pred_i,pred
+        return pred_i,pred,noise

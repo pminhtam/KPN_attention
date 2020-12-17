@@ -21,7 +21,7 @@ class KPN_noise_DGF(nn.Module):
         self.gf = ConvGuidedFilter(radius=1)
 
     def forward(self,data,x_hr):
-        pred_i, pred = self.KPN_noise(data)
+        pred_i, pred,noise = self.KPN_noise(data)
         b, N, c, h, w = data.size()
         data_feed = data[:,0,:,:,:].view(-1,c, h, w)
         pred_feed = pred.view(-1,c, h, w)
@@ -29,7 +29,7 @@ class KPN_noise_DGF(nn.Module):
         x_hr_feed = x_hr.view(-1,c, h_hr, w_hr)
         out_hr = self.gf(data_feed, pred_feed, x_hr_feed)
         out_hr = out_hr.view(b,c, h_hr,w_hr)
-        return out_hr
+        return pred_i,out_hr,noise
 class Att_KPN_noise_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
                  channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
@@ -48,7 +48,7 @@ class Att_KPN_noise_DGF(nn.Module):
         self.gf = ConvGuidedFilter(radius=1)
 
     def forward(self, data,x_hr):
-        pred_i, pred = self.Att_KPN_noise(data)
+        pred_i, pred,noise = self.Att_KPN_noise(data)
         b, N, c, h, w = data.size()
         data_feed = data[:, 0, :, :, :].view(-1, c, h, w)
         pred_feed = pred.view(-1, c, h, w)
@@ -56,7 +56,7 @@ class Att_KPN_noise_DGF(nn.Module):
         x_hr_feed = x_hr.view(-1, c, h_hr, w_hr)
         out_hr = self.gf(data_feed, pred_feed, x_hr_feed)
         out_hr = out_hr.view(b, c, h_hr, w_hr)
-        return out_hr
+        return pred_i,out_hr,noise
 
 class Att_Weight_KPN_noise_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
@@ -76,7 +76,7 @@ class Att_Weight_KPN_noise_DGF(nn.Module):
         self.gf = ConvGuidedFilter(radius=1)
 
     def forward(self, data,x_hr):
-        pred_i, pred = self.Att_Weight_KPN_noise(data)
+        pred_i, pred,noise = self.Att_Weight_KPN_noise(data)
         b, N, c, h, w = data.size()
         data_feed = data[:, 0, :, :, :].view(-1, c, h, w)
         pred_feed = pred.view(-1, c, h, w)
@@ -84,4 +84,4 @@ class Att_Weight_KPN_noise_DGF(nn.Module):
         x_hr_feed = x_hr.view(-1, c, h_hr, w_hr)
         out_hr = self.gf(data_feed, pred_feed, x_hr_feed)
         out_hr = out_hr.view(b, c, h_hr, w_hr)
-        return out_hr
+        return pred_i,out_hr,noise
