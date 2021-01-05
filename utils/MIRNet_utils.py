@@ -40,3 +40,9 @@ class SKFF(nn.Module):
         feats_V = torch.sum(inp_feats * attention_vectors, dim=1)
 
         return feats_V
+
+if __name__=="__main__":
+    from torchsummary import summary
+    model = SKFF(16)
+    print(model)
+    summary(model,(3,16,128,128))
