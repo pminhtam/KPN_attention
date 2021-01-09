@@ -79,7 +79,7 @@ def test_multi(args):
     else:
         print(" Model type not valid")
         return
-    checkpoint_dir = "/vinai/tampm2/KPN_attention/checkpoints/" + args.checkpoint
+    checkpoint_dir = args.checkpoint
     if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
         print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
     # load trained model
