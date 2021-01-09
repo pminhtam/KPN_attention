@@ -27,7 +27,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     # num_workers = 8
     save_freq = args.save_every
     loss_freq = args.loss_every
-    lr_step_size = 100
+    lr_step_size = 5
     burst_length = args.burst_length
     # checkpoint path
     checkpoint_dir = "checkpoints/" + args.checkpoint
