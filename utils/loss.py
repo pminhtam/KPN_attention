@@ -167,7 +167,27 @@ class TensorGradient(nn.Module):
             return torch.sqrt(
                 torch.pow((l - r)[..., 0:w, 0:h], 2) + torch.pow((u - d)[..., 0:w, 0:h], 2)
             )
+class AlginLoss(nn.Module):
+    def __init__(self, eps=1e-3):
+        super(AlginLoss, self).__init__()
+        self.eps = eps
 
+    def forward(self, x, y):
+        y = F.pad(y,[1,1,1,1])
+        diff0 = torch.abs(x-y[:,:,1:-1,1:-1])
+        diff1 = torch.abs(x-y[:,:,0:-2,0:-2])
+        diff2 = torch.abs(x-y[:,:,0:-2,1:-1])
+        diff3 = torch.abs(x-y[:,:,0:-2,2:])
+        diff4 = torch.abs(x-y[:,:,1:-1,0:-2])
+        diff5 = torch.abs(x-y[:,:,1:-1,2:])
+        diff6 = torch.abs(x-y[:,:,2:,0:-2])
+        diff7 = torch.abs(x-y[:,:,2:,1:-1])
+        diff8 = torch.abs(x-y[:,:,2:,2:])
+        diff_cat = torch.stack([diff0, diff1, diff2, diff3, diff4, diff5, diff6, diff7, diff8])
+        diff = torch.min(diff_cat,dim=0)[0]
+        # loss = torch.sum(torch.sqrt(diff * diff + self.eps))
+        loss = torch.mean(torch.sqrt((diff * diff) + (self.eps*self.eps)))
+        return loss
 if __name__ == "__main__":
     x = torch.randn((4,3,128,128))
     print(tv_loss(x))

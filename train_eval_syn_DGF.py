@@ -13,7 +13,7 @@ from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
 from utils.data_provider_DGF_synthetic import SingleLoader_DGF_synth
-from utils.loss import LossBasic,WaveletLoss,tv_loss,LossAnneal_i
+from utils.loss import LossBasic,WaveletLoss,tv_loss,LossAnneal_i,AlginLoss
 from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
@@ -122,6 +122,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     #     beta=100.0
     # )
     loss_func = LossBasic()
+    # loss_func = AlginLoss()
     loss_func_i = LossAnneal_i()
     if args.wavelet_loss:
         print("Use wavelet loss")
