@@ -1,6 +1,5 @@
 from model.KPN import *
-from utils.wavelet import IWT
-from utils.wavelet_highwave import DWT_highwave
+from utils.wavelet_highwave import DWT_highwave,IWT_highwave
 
 
 class Att_NonKPN_Wavelet_highwave(nn.Module):
@@ -16,7 +15,7 @@ class Att_NonKPN_Wavelet_highwave(nn.Module):
 
         out_channel = (3 if color else 1)
         self.DWT = DWT_highwave()
-        self.IWT = IWT()
+        self.IWT = IWT_highwave()
         # 各个卷积层定义
         # 2~5 Down image
         n_feat = 64

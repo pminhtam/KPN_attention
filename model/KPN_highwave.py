@@ -3,14 +3,13 @@ from utils.wavelet_highwave import DWT_highwave,IWT_highwave
 from utils.wavelet import DWT,IWT
 
 class retruct_basic_low(nn.Module):
-    def __init__(self, in_channel):
+    def __init__(self, in_channel,kernel_size=[5]):
         super(retruct_basic_low, self).__init__()
         self.upMode = 'bilinear'
-        channel_att = False
-        spatial_att = False
+        channel_att = True
+        spatial_att = True
         in_channel = in_channel
-
-        out_channel = in_channel
+        out_channel = np.sum(np.array(kernel_size) ** 2)
 
         self.conv1 = Basic(in_channel, 64, channel_att=False, spatial_att=False)
         self.conv2 = Basic(64, 128, channel_att=channel_att, spatial_att=spatial_att,bn=True)
@@ -24,6 +23,7 @@ class retruct_basic_low(nn.Module):
             Basic(64, 64),
             nn.Conv2d(64, out_channel, 1, 1, 0)
         )
+        self.kernel_pred = KernelConv(kernel_size, False, self.core_bias)
 
     def forward(self, data):
         conv1 = self.conv1(data)
@@ -35,17 +35,17 @@ class retruct_basic_low(nn.Module):
         conv8 = self.conv8(torch.cat([conv2, F.interpolate(conv7, scale_factor=2, mode=self.upMode)], dim=1))
         conv9 = self.conv9(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
         # return channel K*K*N
-        out = self.outc(conv9)
-        return out
+        core = self.outc(conv9)
+        pred_i, _ = self.kernel_pred(data, core, 1.0)
+        return pred_i
 class retruct_basic_high(nn.Module):
-    def __init__(self, in_channel):
+    def __init__(self, in_channel,kernel_size=[5]):
         super(retruct_basic_high, self).__init__()
         self.upMode = 'bilinear'
-        channel_att = False
-        spatial_att = False
+        channel_att = True
+        spatial_att = True
         in_channel = in_channel
-
-        out_channel = in_channel
+        out_channel = np.sum(np.array(kernel_size) ** 2)
 
         self.conv1 = Basic(in_channel, 64, channel_att=False, spatial_att=False,bn=True)
         self.conv2 = Basic(64, 128, channel_att=channel_att, spatial_att=spatial_att,bn=True)
@@ -57,6 +57,7 @@ class retruct_basic_high(nn.Module):
             Basic(64, 64),
             nn.Conv2d(64, out_channel, 1, 1, 0)
         )
+        self.kernel_pred = KernelConv(kernel_size, False, self.core_bias)
 
     def forward(self, data):
         conv1 = self.conv1(data)
@@ -64,12 +65,13 @@ class retruct_basic_high(nn.Module):
         conv3 = self.conv3(conv2)
         conv4 = self.conv4(conv3)
 
-        out = self.outc(conv4)
-        return out
+        core = self.outc(conv4)
+        pred_i, _ = self.kernel_pred(data, core, 1.0)
+        return pred_i
 
-class Att_NonKPN_Wavelet_highwave2(nn.Module):
+class Att_KPN_Wavelet_highwave(nn.Module):
     def __init__(self, color=True, burst_length=8, channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
-        super(Att_NonKPN_Wavelet_highwave2, self).__init__()
+        super(Att_KPN_Wavelet_highwave, self).__init__()
         self.upMode = upMode
         self.burst_length = burst_length
         self.core_bias = core_bias
@@ -147,7 +149,7 @@ class Att_NonKPN_Wavelet_highwave2(nn.Module):
         return out
 
 if __name__ == "__main__":
-    model = Att_NonKPN_Wavelet_highwave2(
+    model = Att_KPN_Wavelet_highwave(
         color=True,
         burst_length=1,
         channel_att=True,
