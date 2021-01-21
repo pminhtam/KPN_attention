@@ -129,12 +129,12 @@ def train(num_workers, cuda, restart_train, mGPU):
             pred = model(image_noise_hr)
             #
             # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
-            loss_basic = loss_func(pred, gt)
+            loss_basic = loss_func2(pred, gt)
             loss = loss_basic
-            if args.wavelet_loss:
-                loss_wave = loss_func2(pred,gt)
-                # print(loss_wave)
-                loss = loss_basic + loss_wave
+            # if args.wavelet_loss:
+            #     loss_wave = loss_func2(pred,gt)
+            #     # print(loss_wave)
+            #     loss = loss_basic + loss_wave
             # backward
             optimizer.zero_grad()
             loss.backward()

@@ -23,7 +23,7 @@ class retruct_basic_low(nn.Module):
             Basic(64, 64),
             nn.Conv2d(64, out_channel, 1, 1, 0)
         )
-        self.kernel_pred = KernelConv(kernel_size, False, self.core_bias)
+        self.kernel_pred = KernelConv(kernel_size, False, core_bias=False)
 
     def forward(self, data):
         conv1 = self.conv1(data)
@@ -57,7 +57,7 @@ class retruct_basic_high(nn.Module):
             Basic(64, 64),
             nn.Conv2d(64, out_channel, 1, 1, 0)
         )
-        self.kernel_pred = KernelConv(kernel_size, False, self.core_bias)
+        self.kernel_pred = KernelConv(kernel_size, False, core_bias=False)
 
     def forward(self, data):
         conv1 = self.conv1(data)
