@@ -10,7 +10,7 @@ class retruct_basic_low(nn.Module):
         spatial_att = True
         in_channel = in_channel
         out_channel = np.sum(np.array(kernel_size) ** 2)
-
+        self.color_channel = 3
         self.conv1 = Basic(in_channel, 64, channel_att=False, spatial_att=False)
         self.conv2 = Basic(64, 128, channel_att=channel_att, spatial_att=spatial_att,bn=True)
         self.conv3 = Basic(128, 256, channel_att=channel_att, spatial_att=spatial_att,bn=True)
@@ -22,6 +22,22 @@ class retruct_basic_low(nn.Module):
         self.outc = nn.Sequential(
             Basic(64, 64),
             nn.Conv2d(64, out_channel, 1, 1, 0)
+        )
+        # residual branch
+        self.conv10 = Basic(256+64, 128, channel_att=channel_att, spatial_att=spatial_att)
+        self.out_res = nn.Sequential(
+            nn.Conv2d(128, 64, 1, 1, 0),
+            Basic(64, self.color_channel, g=1),
+            nn.Conv2d(self.color_channel, self.color_channel, 1, 1, 0)
+        )
+
+        self.conv11 = Basic(256+64, 128, channel_att=False, spatial_att=False)
+        self.out_weight = nn.Sequential(
+            nn.Conv2d(128, 64, 1, 1, 0),
+            Basic(64, self.color_channel, g=1),
+            nn.Conv2d(self.color_channel, self.color_channel, 1, 1, 0),
+            # nn.Softmax(dim=1)  #softmax 效果较差
+            nn.Sigmoid()
         )
         self.kernel_pred = KernelConv(kernel_size, False, core_bias=False)
 
@@ -36,8 +52,23 @@ class retruct_basic_low(nn.Module):
         conv9 = self.conv9(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
         # return channel K*K*N
         core = self.outc(conv9)
+        # residual branch
+        conv10 = self.conv10(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
+        residual = self.out_res(conv10)
+
+        conv11 = self.conv11(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
+        weight = self.out_weight(conv11)
+
         pred_i, _ = self.kernel_pred(data, core, 1.0)
-        return pred_i
+        # only for gray images now, supporting for RGB could be programed later
+
+        pred_i, _ = self.kernel_pred(data.unsqeeze(0), core, 1.0)
+        pred = pred_i[0]
+        weight = weight.view(pred.size())
+        residual = residual.view(pred.size())
+        pred = weight*pred + (1-weight)*residual
+
+        return pred
 class retruct_basic_high(nn.Module):
     def __init__(self, in_channel,kernel_size=[5]):
         super(retruct_basic_high, self).__init__()
@@ -66,8 +97,8 @@ class retruct_basic_high(nn.Module):
         conv4 = self.conv4(conv3)
 
         core = self.outc(conv4)
-        pred_i, _ = self.kernel_pred(data, core, 1.0)
-        return pred_i
+        pred_i, _ = self.kernel_pred(data.unsqeeze(0), core, 1.0)
+        return pred_i[0]
 
 class Att_KPN_Wavelet_highwave(nn.Module):
     def __init__(self, color=True, burst_length=8, channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
@@ -95,10 +126,10 @@ class Att_KPN_Wavelet_highwave(nn.Module):
         self.high_hh2 = retruct_basic_high(in_channel)
         self.high_hl2 = retruct_basic_high(in_channel)
         self.high_lh2 = retruct_basic_high(in_channel)
-        self.low_3 = retruct_basic_low(in_channel)
-        self.high_hh3 = retruct_basic_high(in_channel)
-        self.high_lh3 = retruct_basic_high(in_channel)
-        self.high_hl3 = retruct_basic_high(in_channel)
+        # self.low_3 = retruct_basic_low(in_channel)
+        # self.high_hh3 = retruct_basic_high(in_channel)
+        # self.high_lh3 = retruct_basic_high(in_channel)
+        # self.high_hl3 = retruct_basic_high(in_channel)
 
         self.outc = nn.Sequential(
             Basic(in_channel, 64, channel_att=channel_att, spatial_att=spatial_att),
@@ -135,12 +166,12 @@ class Att_KPN_Wavelet_highwave(nn.Module):
         x_HH2 = self.high_hh1(x_HH2)
         x_LH2 = self.high_lh1(x_LH2)
 
-        x_LL3, x_HL3, x_LH3, x_HH3 = self.DWT(x_LL2)
-        x_HL3 = self.high_hl1(x_HL3)
-        x_HH3 = self.high_hh1(x_HH3)
-        x_LH3 = self.high_lh1(x_LH3)
-        x_LL3 = self.low_3(x_LL3)
-        x_LL2 = self.IWT(torch.cat([x_LL3, x_HL3, x_LH3, x_HH3],dim=1))
+        # x_LL3, x_HL3, x_LH3, x_HH3 = self.DWT(x_LL2)
+        # x_HL3 = self.high_hl1(x_HL3)
+        # x_HH3 = self.high_hh1(x_HH3)
+        # x_LH3 = self.high_lh1(x_LH3)
+        # x_LL3 = self.low_3(x_LL3)
+        # x_LL2 = self.IWT(torch.cat([x_LL3, x_HL3, x_LH3, x_HH3],dim=1))
         x_LL2 = self.low_2(x_LL2)
         x_LL1 = self.IWT(torch.cat([x_LL2, x_HL2, x_LH2, x_HH2],dim=1))
         x_LL1 = self.low_1(x_LL1)
