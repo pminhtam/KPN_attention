@@ -59,7 +59,6 @@ class retruct_basic_low(nn.Module):
         conv11 = self.conv11(torch.cat([conv1, F.interpolate(conv8, scale_factor=2, mode=self.upMode)], dim=1))
         weight = self.out_weight(conv11)
 
-        pred_i, _ = self.kernel_pred(data, core, 1.0)
         # only for gray images now, supporting for RGB could be programed later
 
         pred_i, _ = self.kernel_pred(data.unsqueeze(0), core, 1.0)

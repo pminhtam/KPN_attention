@@ -12,7 +12,7 @@ from torchvision.transforms import transforms
 from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
-from utils.loss import LossBasic,WaveletLoss,tv_loss
+from utils.loss import LossBasic,WaveletLoss,tv_loss,CharbonnierLoss
 from model.KPN_highwave import Att_KPN_Wavelet_highwave
 
 def train(num_workers, cuda, restart_train, mGPU):
@@ -68,9 +68,10 @@ def train(num_workers, cuda, restart_train, mGPU):
     model.train()
 
     loss_func = LossBasic()
-    if args.wavelet_loss:
-        print("Use wavelet loss")
-        loss_func2 = WaveletLoss()
+    loss_func2 = CharbonnierLoss()
+    # if args.wavelet_loss:
+    #     print("Use wavelet loss")
+    #     loss_func2 = WaveletLoss()
     # Optimizer here
     optimizer = optim.Adam(
         model.parameters(),
