@@ -24,14 +24,14 @@ class retruct_basic_low(nn.Module):
             nn.Conv2d(64, out_channel, 1, 1, 0)
         )
         # residual branch
-        self.conv10 = Basic(256+64, 128, channel_att=channel_att, spatial_att=spatial_att)
+        self.conv10 = Basic(128+64, 128, channel_att=channel_att, spatial_att=spatial_att)
         self.out_res = nn.Sequential(
             nn.Conv2d(128, 64, 1, 1, 0),
             Basic(64, self.color_channel, g=1),
             nn.Conv2d(self.color_channel, self.color_channel, 1, 1, 0)
         )
 
-        self.conv11 = Basic(256+64, 128, channel_att=False, spatial_att=False)
+        self.conv11 = Basic(128+64, 128, channel_att=False, spatial_att=False)
         self.out_weight = nn.Sequential(
             nn.Conv2d(128, 64, 1, 1, 0),
             Basic(64, self.color_channel, g=1),
@@ -62,7 +62,7 @@ class retruct_basic_low(nn.Module):
         pred_i, _ = self.kernel_pred(data, core, 1.0)
         # only for gray images now, supporting for RGB could be programed later
 
-        pred_i, _ = self.kernel_pred(data.unsqeeze(0), core, 1.0)
+        pred_i, _ = self.kernel_pred(data.unsqueeze(0), core, 1.0)
         pred = pred_i[0]
         weight = weight.view(pred.size())
         residual = residual.view(pred.size())
@@ -97,7 +97,7 @@ class retruct_basic_high(nn.Module):
         conv4 = self.conv4(conv3)
 
         core = self.outc(conv4)
-        pred_i, _ = self.kernel_pred(data.unsqeeze(0), core, 1.0)
+        pred_i, _ = self.kernel_pred(data.unsqueeze(0), core, 1.0)
         return pred_i[0]
 
 class Att_KPN_Wavelet_highwave(nn.Module):
