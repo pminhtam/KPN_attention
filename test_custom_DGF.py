@@ -23,6 +23,8 @@ def load_data(image_file,burst_length):
         image_noise = torch.cat((image_noise,image_noise[-2:-1]),dim=0)
     if len(image_noise) > burst_length:
         image_noise = image_noise[0:8]
+    image_noise_hr2 = pixel_shuffle(image_noise.unsqueeze(0), upscale_factor).squeeze(0)
+    print(image_noise_hr - image_noise_hr2)
     image_noise_burst_crop = image_noise.unsqueeze(0)
     return image_noise_burst_crop,image_noise_hr.unsqueeze(0)
 def test_multi(args):
@@ -105,6 +107,7 @@ def test_multi(args):
     torch.manual_seed(0)
     noisy_path = sorted(glob.glob(args.noise_dir+ "/*.png"))
     clean_path = [ i.replace("noisy","clean") for i in noisy_path]
+    upscale_factor = int(math.sqrt(burst_length))
     for i in range(len(noisy_path)):
         image_noise,image_noise_hr = load_data(noisy_path[i],burst_length)
         image_noise_hr = image_noise_hr.to(device)
@@ -122,7 +125,13 @@ def test_multi(args):
             feedData = burst_noise
         # print(feedData.size())
         pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
-        del pred_i
+        # del pred_i
+        pred_i = pred_i.detach().cpu()
+        print(pred_i.size())
+        pred_full = pixel_shuffle(pred_i,upscale_factor)
+        pred_full = pred_full
+        print(pred_full.size())
+
         pred = pred.detach().cpu()
         # print("Time : ", time.time()-begin)
         gt = transforms.ToTensor()(Image.open(clean_path[i]).convert('RGB'))
@@ -131,6 +140,7 @@ def test_multi(args):
         # print(pred[0].size())
         psnr_t = calculate_psnr(pred, gt)
         ssim_t = calculate_ssim(pred, gt)
+        print(i,"  pixel_shuffle UP   :  PSNR : ", str(calculate_psnr(pred_full, gt))," :  SSIM : ", str(calculate_ssim(pred_full, gt)))
         print(i,"   UP   :  PSNR : ", str(psnr_t)," :  SSIM : ", str(ssim_t))
         if args.save_img != '':
             if not os.path.exists(args.save_img):
@@ -165,9 +175,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='parameters for training')
     parser.add_argument('--noise_dir','-n', default='/home/dell/Downloads/FullTest/noisy', help='path to noise image file')
     parser.add_argument('--gt','-g', default='/home/dell/Downloads/FullTest/clean', help='path to noise image file')
-    parser.add_argument('--burst_length','-b' ,default=16, type=int, help='batch size')
+    parser.add_argument('--burst_length','-b' ,default=4, type=int, help='batch size')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
-    parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_dgf',
+    parser.add_argument('--checkpoint', '-ckpt', type=str, default='att_kpn_dgf_4_new',
                         help='the checkpoint to eval')
     parser.add_argument('--model_type','-m' ,default="attKPN", help='type of model : KPN, attKPN, attWKPN , attKPN_Wave')
     parser.add_argument('--save_img', "-s" ,default="", type=str, help='save image in eval_img folder ')

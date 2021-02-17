@@ -61,7 +61,7 @@ class retruct_basic_low(nn.Module):
 
         # only for gray images now, supporting for RGB could be programed later
 
-        pred_i, _ = self.kernel_pred(data.unsqueeze(0), core, 1.0)
+        pred_i, _ = self.kernel_pred(data.unsqueeze(1), core, 1.0)
         pred = pred_i[0]
         weight = weight.view(pred.size())
         residual = residual.view(pred.size())
@@ -96,7 +96,7 @@ class retruct_basic_high(nn.Module):
         conv4 = self.conv4(conv3)
 
         core = self.outc(conv4)
-        pred_i, _ = self.kernel_pred(data.unsqueeze(0), core, 1.0)
+        pred_i, _ = self.kernel_pred(data.unsqueeze(1), core, 1.0)
         return pred_i[0]
 
 class Att_KPN_Wavelet_highwave(nn.Module):

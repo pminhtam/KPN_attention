@@ -1,7 +1,7 @@
 import argparse
 from utils.training_util import load_checkpoint
 from utils.data_provider import *
-from model.NonKPN_DGF import Att_NonKPN_Wavelet_DGF
+from model.NonKPN_highwave2 import Att_NonKPN_Wavelet_highwave2
 
 from collections import OrderedDict
 import matplotlib.pyplot as plt
@@ -29,17 +29,13 @@ def test_multi(args):
     burst_length = args.burst_length
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if  args.model_type == "attNonKPN_Wave":
-        model = Att_NonKPN_Wavelet_DGF(
+        model = Att_NonKPN_Wavelet_highwave2(
             color=color,
             burst_length=burst_length,
-            blind_est=True,
-            kernel_size=[3],
-            sep_conv=False,
             channel_att=True,
             spatial_att=True,
             upMode="bilinear",
             core_bias=False,
-            bn=args.bn
         )
     else:
         print(" Model type not valid")
@@ -69,7 +65,7 @@ def test_multi(args):
     torch.manual_seed(0)
     all_noisy_imgs = scipy.io.loadmat(args.noise_dir)['ValidationNoisyBlocksSrgb']
     all_clean_imgs = scipy.io.loadmat(args.gt)['ValidationGtBlocksSrgb']
-    i_imgs, i_blocks, _, _, _ = all_noisy_imgs.shape
+    i_imgs, i_blocks ,_,_,_ = all_noisy_imgs.shape
     psnrs = []
     ssims = []
     for i_img in range(i_imgs):
@@ -79,18 +75,8 @@ def test_multi(args):
             image_noise_hr = image_noise_hr.to(device)
             # begin = time.time()
             image_noise_batch = image_noise.to(device)
-            # print(image_noise_batch.size())
-            burst_size = image_noise_batch.size()[1]
-            burst_noise = image_noise_batch.to(device)
-            # print(burst_noise.size())
-            # print(image_noise_hr.size())
-            if color:
-                b, N, c, h, w = burst_noise.size()
-                feedData = burst_noise.view(b, -1, h, w)
-            else:
-                feedData = burst_noise
-            # print(feedData.size())
-            pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
+
+            pred = model(image_noise_hr)
             pred = pred.detach().cpu()
             # print("Time : ", time.time()-begin)
             gt = transforms.ToTensor()(Image.fromarray(all_clean_imgs[i_img][i_block]))
@@ -150,5 +136,5 @@ if __name__ == "__main__":
 
     test_multi(args)
 
-
+# python test_custom_DGF_mat.py -g ../siddplus_valid_gt_srgb.mat -n ../siddplus_valid_noisy_srgb.mat -b 4 -c -ckpt att_kpn_wave_remean -m attKPN_Wave -l lastest
 

@@ -127,3 +127,79 @@ class ConvGuidedFilter(nn.Module):
         mean_b = F.interpolate(b, (h_hrx, w_hrx), mode='bilinear', align_corners=True)
 
         return mean_A * x_hr + mean_b
+
+
+## UpSample
+class ResidualUpSample(nn.Module):
+    def __init__(self, in_channels, bias=False):
+        super(ResidualUpSample, self).__init__()
+
+        self.top = nn.Sequential(nn.Conv2d(in_channels, in_channels, 1, stride=1, padding=0, bias=bias),
+                                 nn.PReLU(),
+                                 nn.ConvTranspose2d(in_channels, in_channels, 3, stride=2, padding=1, output_padding=1,
+                                                    bias=bias),
+                                 nn.PReLU(),
+                                 nn.Conv2d(in_channels, in_channels // 2, 1, stride=1, padding=0, bias=bias))
+
+        self.bot = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=bias),
+                                 nn.Conv2d(in_channels, in_channels // 2, 1, stride=1, padding=0, bias=bias))
+
+    def forward(self, x):
+        top = self.top(x)
+        bot = self.bot(x)
+        out = top + bot
+        return out
+
+
+class ConvGuidedFilter2(nn.Module):
+    def __init__(self, radius=1, norm=nn.BatchNorm2d):
+        super(ConvGuidedFilter2, self).__init__()
+
+        self.box_filter = nn.Conv2d(12, 12, kernel_size=3, padding=radius, dilation=radius, bias=False, groups=12)
+        self.conv_a = nn.Sequential(nn.Conv2d(24, 64, kernel_size=1, bias=False),
+                                    norm(64),
+                                    nn.ReLU(inplace=True),
+                                    nn.Conv2d(64, 64, kernel_size=1, bias=False),
+                                    norm(64),
+                                    nn.ReLU(inplace=True),
+                                    nn.Conv2d(64, 12, kernel_size=1, bias=False))
+        self.box_filter.weight.data[...] = 1.0
+        self.box_filter.requires_grad = False
+
+        self.upsample_A = ResidualUpSample(12)
+        self.upsample_b = ResidualUpSample(12)
+
+        self.last_conv_a = nn.Conv2d(6, 3, kernel_size=1, bias=False)
+        self.last_conv_b = nn.Conv2d(6, 3, kernel_size=1, bias=False)
+
+    def forward(self, x_lr, y_lr, x_hr):
+        # x_lr (B, 4*3, H, W)
+        # y_lr (B, 4*3, H, W)
+        _, C, h_lrx, w_lrx = x_lr.size()
+        # _, _, h_hrx, w_hrx = x_hr.size()
+
+        N = self.box_filter(x_lr.data.new().resize_((1, C, h_lrx, w_lrx)).fill_(1.0))
+        ## mean_x
+        mean_x = self.box_filter(x_lr) / N
+        ## mean_y
+        mean_y = self.box_filter(y_lr) / N
+        ## cov_xy
+        cov_xy = self.box_filter(x_lr * y_lr) / N - mean_x * mean_y
+        ## var_x
+        var_x = self.box_filter(x_lr * x_lr) / N - mean_x * mean_x
+
+        ## A (B, 24, H, W)
+        A = self.conv_a(torch.cat([cov_xy, var_x], dim=1))
+        ## b
+        b = mean_y - A * mean_x
+
+        ## mean_A; mean_b
+        # mean_A = F.interpolate(A, (h_hrx, w_hrx), mode='bilinear', align_corners=True)
+        # mean_b = F.interpolate(b, (h_hrx, w_hrx), mode='bilinear', align_corners=True)
+
+        mean_A = self.upsample_A(A)
+        mean_A = self.last_conv_a(mean_A)
+        mean_b = self.upsample_b(b)
+        mean_b = self.last_conv_b(mean_b)
+
+        return mean_A * x_hr + mean_b
