@@ -267,132 +267,6 @@ def train(num_workers, cuda, restart_train, mGPU):
             for param in optimizer.param_groups:
                 param['lr'] = 5e-6
 
-def eval(args):
-    color = True
-    print('Eval Process......')
-    burst_length = 16
-
-    checkpoint_dir = "checkpointa/" + args.checkpoint
-    if not os.path.exists(checkpoint_dir) or len(os.listdir(checkpoint_dir)) == 0:
-        print('There is no any checkpoint file in path:{}'.format(checkpoint_dir))
-    # the path for saving eval images
-    eval_dir = "eval_img"
-    if not os.path.exists(eval_dir):
-        os.mkdir(eval_dir)
-    files = os.listdir(eval_dir)
-    for f in files:
-        os.remove(os.path.join(eval_dir, f))
-
-    # dataset and dataloader
-    data_set = SingleLoader_DGF(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size)
-    data_loader = DataLoader(
-        data_set,
-        batch_size=1,
-        shuffle=False,
-        num_workers=args.num_workers
-    )
-
-    # model here
-    if args.model_type == "attKPN":
-        model = Att_KPN_DGF(
-            color=color,
-            burst_length=burst_length,
-            blind_est=True,
-            kernel_size=[5],
-            sep_conv=False,
-            channel_att=True,
-            spatial_att=True,
-            upMode="bilinear",
-            core_bias=False
-        )
-    elif args.model_type == "attWKPN":
-        model = Att_Weight_KPN_DGF(
-            color=color,
-            burst_length=burst_length,
-            blind_est=True,
-            kernel_size=[5],
-            sep_conv=False,
-            channel_att=True,
-            spatial_att=True,
-            upMode="bilinear",
-            core_bias=False
-        )
-    elif args.model_type == 'KPN':
-        model = KPN_DGF(
-            color=color,
-            burst_length=burst_length,
-            blind_est=True,
-            kernel_size=[5],
-            sep_conv=False,
-            channel_att=False,
-            spatial_att=False,
-            upMode="bilinear",
-            core_bias=False
-        )
-    else:
-        print(" Model type not valid")
-        return
-    if args.cuda:
-        model = model.cuda()
-
-    if args.mGPU:
-        model = nn.DataParallel(model)
-    # load trained model
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    ckpt = load_checkpoint(checkpoint_dir,cuda=device=='cuda',best_or_latest=args.load_type)
-    model.load_state_dict(ckpt['state_dict'])
-    print('The model has been loaded from epoch {}, n_iter {}.'.format(ckpt['epoch'], ckpt['global_iter']))
-    # switch the eval mode
-    model.eval()
-
-    # data_loader = iter(data_loader)
-    trans = transforms.ToPILImage()
-
-    with torch.no_grad():
-        psnr = 0.0
-        ssim = 0.0
-        for i, (burst_noise, gt) in enumerate(data_loader):
-            if i < 100:
-                # data = next(data_loader)
-                if args.cuda:
-                    burst_noise = burst_noise.cuda()
-                    gt = gt.cuda()
-                if color:
-                    b, N, c, h, w = burst_noise.size()
-                    feedData = burst_noise.view(b, -1, h, w)
-                else:
-                    feedData = burst_noise
-                pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...])
-
-
-                if not color:
-                    psnr_t = calculate_psnr(pred.unsqueeze(1), gt.unsqueeze(1))
-                    ssim_t = calculate_ssim(pred.unsqueeze(1), gt.unsqueeze(1))
-                    psnr_noisy = calculate_psnr(burst_noise[:, 0, ...].unsqueeze(1), gt.unsqueeze(1))
-                else:
-                    psnr_t = calculate_psnr(pred, gt)
-                    ssim_t = calculate_ssim(pred, gt)
-                    psnr_noisy = calculate_psnr(burst_noise[:, 0, ...], gt)
-
-                psnr += psnr_t
-                ssim += ssim_t
-
-                pred = torch.clamp(pred, 0.0, 1.0)
-
-                if args.cuda:
-                    pred = pred.cpu()
-                    gt = gt.cpu()
-                    burst_noise = burst_noise.cpu()
-
-                trans(burst_noise[0, 0, ...].squeeze()).save(os.path.join(eval_dir, '{}_noisy_{:.2f}dB.png'.format(i, psnr_noisy)), quality=100)
-                trans(pred.squeeze()).save(os.path.join(eval_dir, '{}_pred_{:.2f}dB.png'.format(i, psnr_t)), quality=100)
-                trans(gt.squeeze()).save(os.path.join(eval_dir, '{}_gt.png'.format(i)), quality=100)
-
-                print('{}-th image is OK, with PSNR: {:.2f}dB, SSIM: {:.4f}'.format(i, psnr_t, ssim_t))
-            else:
-                break
-        # print('All images are OK, average PSNR: {:.2f}dB, SSIM: {:.4f}'.format(psnr/100, ssim/100))
-
 
 if __name__ == '__main__':
     # argparse
@@ -410,7 +284,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', '-nw', default=2, type=int, help='number of workers in data loader')
     parser.add_argument('--cuda', '-c', action='store_true', help='whether to train on the GPU')
     parser.add_argument('--mGPU', '-mg', action='store_true', help='whether to train on multiple GPUs')
-    parser.add_argument('--eval', action='store_true', help='whether to work on the evaluation mode')
     parser.add_argument('--checkpoint', '-ckpt', type=str, default='kpn',
                         help='the checkpoint to eval')
     parser.add_argument('--color','-cl' , default=True, action='store_true')
@@ -420,8 +293,5 @@ if __name__ == '__main__':
     parser.add_argument('--bn','-bn' , default=False, action='store_true', help='Use BatchNorm2d')
 
     args = parser.parse_args()
-    #
-    if args.eval:
-        eval(args)
-    else:
-        train(args.num_workers,args.cuda, args.restart, args.mGPU)
+
+    train(args.num_workers,args.cuda, args.restart, args.mGPU)
