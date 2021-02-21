@@ -29,6 +29,7 @@ class KPN_DGF(nn.Module):
         # print(data[:,0,:,:,:].size())
         data_feed = data[:,0,:,:,:].view(-1,c, h, w)
         pred_feed = pred.view(-1,c, h, w)
+        pred_i = pred_i.view(-1,c*N,h,w)
 
         b_hr, c_hr, h_hr, w_hr = x_hr.size()
         # print("x_hr  ",x_hr.size())
@@ -36,7 +37,8 @@ class KPN_DGF(nn.Module):
         # print(data_feed.size())
         # print(pred_feed.size())
         # print(x_hr_feed.size())
-        out_hr = self.gf(data_feed, pred_feed, x_hr_feed)
+        # out_hr = self.gf(data.view(b,c*N, h, w), pred_i, x_hr_feed)
+        out_hr = self.gf(data.view(b,c*N, h, w), pred_feed.repeat(1,N, 1, 1), x_hr_feed)
 
         out_hr = out_hr.view(b,c, h_hr,w_hr)
         return pred_i,out_hr

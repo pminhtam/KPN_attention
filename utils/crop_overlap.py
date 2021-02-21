@@ -84,11 +84,10 @@ def crop_image(image_path, parrent_dir):
   sio.savemat(file_mat, data)
   index += 1  
 
-save_dir = '/home/dell/Downloads/FullTest/test'
+save_dir = 'codalab_split'
 if os.path.exists(save_dir):
   shutil.rmtree(save_dir)
 os.mkdir(save_dir)
-for image_path in tqdm(glob.glob('/home/dell/Downloads/noise/0001_NOISY_SRGB/*.PNG')):
+for image_path in tqdm(glob.glob('/home/ubuntu/codalab_val/*.png')):
   crop_image(image_path, save_dir)
-
 

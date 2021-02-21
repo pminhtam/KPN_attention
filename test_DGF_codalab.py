@@ -103,12 +103,16 @@ def test_multi(args):
     mat_folders = glob.glob(os.path.join(args.noise_dir, '*'))
     model.eval()
     torch.manual_seed(0)
-
+    trans = transforms.ToPILImage()
+    if not os.path.exists(args.save_img):
+        os.makedirs(args.save_img)
     for mat_folder in mat_folders:
+        save_mat_folder = os.path.join(args.save_img,mat_folder.split("/")[-1])
         for mat_file in glob.glob(os.path.join(mat_folder, '*')):
             mat_contents = sio.loadmat(mat_file)
             sub_image, y_gb, x_gb = mat_contents['image'], mat_contents['y_gb'][0][0], mat_contents['x_gb'][0][0]
-            image_noise = transforms.ToTensor()(Image.fromarray(sub_image))
+            # print(sub_image)
+            image_noise = transforms.ToTensor()(Image.fromarray(np.array(sub_image)))
             image_noise,image_noise_hr = load_data(image_noise,burst_length)
             image_noise_hr = image_noise_hr.to(device)
             # begin = time.time()
@@ -126,15 +130,20 @@ def test_multi(args):
             # print(feedData.size())
             pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
             del pred_i
-            pred = pred.detach().cpu()
-
+            print(pred.size())
+            pred = np.array(trans(pred[0].cpu()))
+            print(pred.shape)
             if args.save_img != '':
-                if not os.path.exists(args.save_img):
-                    os.makedirs(args.save_img)
-                if not os.path.exists(mat_folder.replace(mat_folders,args.save_img)):
-                    os.makedirs(mat_folder.replace(mat_folders,args.save_img))
-                mat_contents['image'] = pred
-                sio.savemat(mat_file.replace(mat_folder,args.save_img), mat_contents)
+                if not os.path.exists(save_mat_folder):
+                    os.makedirs(save_mat_folder)
+                # mat_contents['image'] = pred
+                # print(mat_contents)
+                print("save : ", os.path.join(save_mat_folder,mat_file.split("/")[-1]))
+                data = {"image": pred, "y_gb": mat_contents['y_gb'][0][0], "x_gb": mat_contents['x_gb'][0][0],
+                        "y_lc": mat_contents['y_lc'][0][0], "x_lc": mat_contents['x_lc'][0][0], 'size': mat_contents['size'][0][0],
+                        "H": mat_contents['H'][0][0], "W": mat_contents['W'][0][0]}
+                # print(data)
+                sio.savemat(os.path.join(save_mat_folder,mat_file.split("/")[-1]), data)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from torch.nn import functional as F
 from torch.autograd import Variable
 
 from .box_filter import BoxFilter
+from .subnet import UNet
 
 class FastGuidedFilter(nn.Module):
     def __init__(self, r, eps=1e-8):
@@ -139,10 +140,10 @@ class ResidualUpSample(nn.Module):
                                  nn.ConvTranspose2d(in_channels, in_channels, 3, stride=2, padding=1, output_padding=1,
                                                     bias=bias),
                                  nn.PReLU(),
-                                 nn.Conv2d(in_channels, in_channels // 2, 1, stride=1, padding=0, bias=bias))
+                                 nn.Conv2d(in_channels, in_channels, 1, stride=1, padding=0, bias=bias))
 
         self.bot = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=bias),
-                                 nn.Conv2d(in_channels, in_channels // 2, 1, stride=1, padding=0, bias=bias))
+                                 nn.Conv2d(in_channels, in_channels, 1, stride=1, padding=0, bias=bias))
 
     def forward(self, x):
         top = self.top(x)
@@ -156,6 +157,7 @@ class ConvGuidedFilter2(nn.Module):
         super(ConvGuidedFilter2, self).__init__()
 
         self.box_filter = nn.Conv2d(12, 12, kernel_size=3, padding=radius, dilation=radius, bias=False, groups=12)
+
         self.conv_a = nn.Sequential(nn.Conv2d(24, 64, kernel_size=1, bias=False),
                                     norm(64),
                                     nn.ReLU(inplace=True),
@@ -169,8 +171,8 @@ class ConvGuidedFilter2(nn.Module):
         self.upsample_A = ResidualUpSample(12)
         self.upsample_b = ResidualUpSample(12)
 
-        self.last_conv_a = nn.Conv2d(6, 3, kernel_size=1, bias=False)
-        self.last_conv_b = nn.Conv2d(6, 3, kernel_size=1, bias=False)
+        # 3*4 + 3 -> 3*4
+        self.weight_est = UNet(15, 15)
 
     def forward(self, x_lr, y_lr, x_hr):
         # x_lr (B, 4*3, H, W)
@@ -188,18 +190,29 @@ class ConvGuidedFilter2(nn.Module):
         ## var_x
         var_x = self.box_filter(x_lr * x_lr) / N - mean_x * mean_x
 
-        ## A (B, 24, H, W)
+        ## A (B, 12, H, W)
         A = self.conv_a(torch.cat([cov_xy, var_x], dim=1))
         ## b
         b = mean_y - A * mean_x
 
         ## mean_A; mean_b
-        # mean_A = F.interpolate(A, (h_hrx, w_hrx), mode='bilinear', align_corners=True)
-        # mean_b = F.interpolate(b, (h_hrx, w_hrx), mode='bilinear', align_corners=True)
-
+        ## mean_A (B, 12, H, W); mean_b (B, 12, H, W)
         mean_A = self.upsample_A(A)
-        mean_A = self.last_conv_a(mean_A)
         mean_b = self.upsample_b(b)
-        mean_b = self.last_conv_b(mean_b)
 
-        return mean_A * x_hr + mean_b
+        # y_hr (B, 12, H, W)
+        y_hr = mean_A * torch.cat([x_hr] * 4, dim=1) + mean_b
+
+        # weight estimation
+        res = self.weight_est(torch.cat([y_hr, x_hr], dim=1))
+        offset = res[:, -3:, ...];
+        weight = res[:, :-3, ...]
+        weight = torch.stack(torch.chunk(weight, chunks=4, dim=1), dim=1)
+        weight = F.softmax(weight, dim=1)  # (B, 4, 3, H, W)
+        offset = torch.tanh(offset)
+
+        # Avarage
+        y_hr = torch.stack(torch.chunk(y_hr, chunks=4, dim=1), dim=1)
+        y_lr_avg = torch.sum(weight * y_hr, dim=1) + offset
+
+        return y_lr_avg
