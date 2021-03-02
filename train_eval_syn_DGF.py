@@ -46,7 +46,7 @@ def train(num_workers, cuda, restart_train, mGPU):
     elif args.data_type == "synth":
         data_set = SingleLoader_DGF_synth(gt_dir=args.gt_dir,image_size=args.image_size,burst_length=burst_length)
     elif args.data_type == 'raw':
-        data_set = SingleLoader_DGF_raw(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size)
+        data_set = SingleLoader_DGF_raw(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size,burst_length=args.burst_length)
     else:
         print("Wrong type data")
         return
