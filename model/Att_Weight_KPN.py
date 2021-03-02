@@ -9,7 +9,7 @@ class Att_Weight_KPN(nn.Module):
         self.core_bias = core_bias
         self.color_channel = 3 if color else 1
         # in_channel = (3 if color else 1) * (burst_length if blind_est else burst_length + 1)
-        in_channel = in_channel
+        in_channel = in_channel*burst_length
         out_channel = (
             2 * sum(kernel_size) if sep_conv else np.sum(np.array(kernel_size) ** 2)) * burst_length
 
