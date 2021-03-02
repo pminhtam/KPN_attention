@@ -6,7 +6,7 @@ from guided_filter_pytorch.guided_filter import ConvGuidedFilter2
 
 class KPN_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
-                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
+                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False,in_channel = 3):
         super(KPN_DGF, self).__init__()
         self.KPN = KPN(
             color=color,
@@ -17,7 +17,8 @@ class KPN_DGF(nn.Module):
             channel_att=channel_att,
             spatial_att=spatial_att,
             upMode=upMode,
-            core_bias=core_bias
+            core_bias=core_bias,
+            in_channel=in_channel
         )
         self.gf = ConvGuidedFilter2(radius=1)
 
@@ -43,7 +44,7 @@ class KPN_DGF(nn.Module):
 
 class Att_KPN_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
-                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
+                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False,in_channel = 3):
         super(Att_KPN_DGF, self).__init__()
         self.Att_KPN = Att_KPN(
             color=color,
@@ -54,9 +55,10 @@ class Att_KPN_DGF(nn.Module):
             channel_att=channel_att,
             spatial_att=spatial_att,
             upMode=upMode,
-            core_bias=core_bias
+            core_bias=core_bias,
+            in_channel=in_channel
         )
-        self.gf = ConvGuidedFilter2(radius=1)
+        self.gf = ConvGuidedFilter2(radius=1,n_colors=in_channel,n_bursts=burst_length)
 
     def forward(self,data_with_est, data,x_hr):
         pred_i, pred = self.Att_KPN(data_with_est, data)
@@ -82,7 +84,7 @@ class Att_KPN_DGF(nn.Module):
 
 class Att_Weight_KPN_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
-                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
+                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False,in_channel = 3):
         super(Att_Weight_KPN_DGF, self).__init__()
         self.Att_Weight_KPN = Att_Weight_KPN(
             color=color,
@@ -93,7 +95,8 @@ class Att_Weight_KPN_DGF(nn.Module):
             channel_att=channel_att,
             spatial_att=spatial_att,
             upMode=upMode,
-            core_bias=core_bias
+            core_bias=core_bias,
+            in_channel = in_channel
         )
         self.gf = ConvGuidedFilter2(radius=1)
 
@@ -119,7 +122,7 @@ class Att_Weight_KPN_DGF(nn.Module):
 
 class Att_KPN_Wavelet_DGF(nn.Module):
     def __init__(self,color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
-                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False):
+                 channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False,in_channel = 3):
         super(Att_KPN_Wavelet_DGF, self).__init__()
         self.Att_KPN_Wavelet = Att_KPN_Wavelet(
             color=color,
@@ -130,7 +133,8 @@ class Att_KPN_Wavelet_DGF(nn.Module):
             channel_att=channel_att,
             spatial_att=spatial_att,
             upMode=upMode,
-            core_bias=core_bias
+            core_bias=core_bias,
+            in_channel=in_channel
         )
         self.gf = ConvGuidedFilter2(radius=1)
 

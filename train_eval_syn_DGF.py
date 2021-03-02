@@ -45,6 +45,8 @@ def train(num_workers, cuda, restart_train, mGPU):
         data_set = SingleLoader_DGF(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size,burst_length=burst_length)
     elif args.data_type == "synth":
         data_set = SingleLoader_DGF_synth(gt_dir=args.gt_dir,image_size=args.image_size,burst_length=burst_length)
+    elif args.data_type == 'raw':
+        data_set = SingleLoader_DGF_raw(noise_dir=args.noise_dir,gt_dir=args.gt_dir,image_size=args.image_size)
     else:
         print("Wrong type data")
         return
@@ -65,7 +67,8 @@ def train(num_workers, cuda, restart_train, mGPU):
             channel_att=True,
             spatial_att=True,
             upMode="bilinear",
-            core_bias=False
+            core_bias=False,
+            in_channel=args.in_channel
         )
     elif args.model_type == "attKPN_Wave":
         model = Att_KPN_Wavelet_DGF(
@@ -77,7 +80,8 @@ def train(num_workers, cuda, restart_train, mGPU):
             channel_att=True,
             spatial_att=True,
             upMode="bilinear",
-            core_bias=False
+            core_bias=False,
+            in_channel=args.in_channel
         )
     elif args.model_type == "attWKPN":
         model = Att_Weight_KPN_DGF(
@@ -89,7 +93,8 @@ def train(num_workers, cuda, restart_train, mGPU):
             channel_att=True,
             spatial_att=True,
             upMode="bilinear",
-            core_bias=False
+            core_bias=False,
+            in_channel=args.in_channel
         )
     elif args.model_type == "KPN":
         model = KPN_DGF(
@@ -101,7 +106,8 @@ def train(num_workers, cuda, restart_train, mGPU):
             channel_att=False,
             spatial_att=False,
             upMode="bilinear",
-            core_bias=False
+            core_bias=False,
+            in_channel=args.in_channel
         )
     else:
         print(" Model type not valid")
@@ -273,7 +279,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='parameters for training')
     parser.add_argument('--noise_dir','-n', default='/home/dell/Downloads/noise', help='path to noise folder image')
     parser.add_argument('--gt_dir', '-g' , default='/home/dell/Downloads/gt', help='path to gt folder image')
-    parser.add_argument('--data_type', '-dt' , default='real', help='real | synth')
+    parser.add_argument('--data_type', '-dt' , default='real', help='real | synth | raw')
     parser.add_argument('--image_size', '-sz' , default=128, type=int, help='size of image')
     parser.add_argument('--epoch', '-e' ,default=1000, type=int, help='batch size')
     parser.add_argument('--batch_size','-bs' ,  default=2, type=int, help='batch size')
@@ -291,6 +297,7 @@ if __name__ == '__main__':
     parser.add_argument('--load_type', "-l" ,default="best", type=str, help='Load type best_or_latest ')
     parser.add_argument('--wavelet_loss','-wl' , default=False, action='store_true')
     parser.add_argument('--bn','-bn' , default=False, action='store_true', help='Use BatchNorm2d')
+    parser.add_argument('--in_channel', '-ic', default=3,type=int, help='number of color input')
 
     args = parser.parse_args()
 

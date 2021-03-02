@@ -153,26 +153,27 @@ class ResidualUpSample(nn.Module):
 
 
 class ConvGuidedFilter2(nn.Module):
-    def __init__(self, radius=1, norm=nn.BatchNorm2d):
+    def __init__(self, radius=1, norm=nn.BatchNorm2d,n_colors=3,n_bursts=4):
         super(ConvGuidedFilter2, self).__init__()
+        self.n_colors = n_colors
+        self.n_bursts = n_bursts
+        self.box_filter = nn.Conv2d(n_colors*n_bursts, n_colors*n_bursts, kernel_size=3, padding=radius, dilation=radius, bias=False, groups=n_colors*n_bursts)
 
-        self.box_filter = nn.Conv2d(12, 12, kernel_size=3, padding=radius, dilation=radius, bias=False, groups=12)
-
-        self.conv_a = nn.Sequential(nn.Conv2d(24, 64, kernel_size=1, bias=False),
+        self.conv_a = nn.Sequential(nn.Conv2d(n_colors*n_bursts*2, 64, kernel_size=1, bias=False),
                                     norm(64),
                                     nn.ReLU(inplace=True),
                                     nn.Conv2d(64, 64, kernel_size=1, bias=False),
                                     norm(64),
                                     nn.ReLU(inplace=True),
-                                    nn.Conv2d(64, 12, kernel_size=1, bias=False))
+                                    nn.Conv2d(64, n_colors*n_bursts, kernel_size=1, bias=False))
         self.box_filter.weight.data[...] = 1.0
         self.box_filter.requires_grad = False
 
-        self.upsample_A = ResidualUpSample(12)
-        self.upsample_b = ResidualUpSample(12)
+        self.upsample_A = ResidualUpSample(n_colors*n_bursts)
+        self.upsample_b = ResidualUpSample(n_colors*n_bursts)
 
         # 3*4 + 3 -> 3*4
-        self.weight_est = UNet(15, 15)
+        self.weight_est = UNet(n_colors*n_bursts+n_colors, n_colors*n_bursts+n_colors)
 
     def forward(self, x_lr, y_lr, x_hr):
         # x_lr (B, 4*3, H, W)
@@ -201,18 +202,18 @@ class ConvGuidedFilter2(nn.Module):
         mean_b = self.upsample_b(b)
 
         # y_hr (B, 12, H, W)
-        y_hr = mean_A * torch.cat([x_hr] * 4, dim=1) + mean_b
+        y_hr = mean_A * torch.cat([x_hr] * self.n_bursts, dim=1) + mean_b
 
         # weight estimation
         res = self.weight_est(torch.cat([y_hr, x_hr], dim=1))
-        offset = res[:, -3:, ...];
-        weight = res[:, :-3, ...]
-        weight = torch.stack(torch.chunk(weight, chunks=4, dim=1), dim=1)
+        offset = res[:, -self.n_colors:, ...]
+        weight = res[:, :-self.n_colors, ...]
+        weight = torch.stack(torch.chunk(weight, chunks=self.n_bursts, dim=1), dim=1)
         weight = F.softmax(weight, dim=1)  # (B, 4, 3, H, W)
         offset = torch.tanh(offset)
 
         # Avarage
-        y_hr = torch.stack(torch.chunk(y_hr, chunks=4, dim=1), dim=1)
+        y_hr = torch.stack(torch.chunk(y_hr, chunks=self.n_bursts, dim=1), dim=1)
         y_lr_avg = torch.sum(weight * y_hr, dim=1) + offset
 
         return y_lr_avg
