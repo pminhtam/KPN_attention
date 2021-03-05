@@ -167,6 +167,27 @@ class TensorGradient(nn.Module):
             return torch.sqrt(
                 torch.pow((l - r)[..., 0:w, 0:h], 2) + torch.pow((u - d)[..., 0:w, 0:h], 2)
             )
+class BasicLoss(nn.Module):
+    def __init__(self, eps=1e-3, alpha=0.998, beta=100):
+        super(BasicLoss, self).__init__()
+        self.charbonnier_loss = CharbonnierLoss(eps)
+        self.alpha = alpha
+        self.beta = beta
+
+    def forward(self, pred, burst_pred, gt, gamma):
+        b,N,c,h,w = burst_pred.size()
+        burst_pred = burst_pred.view(b,c*N,h,w)
+        burst_gt = torch.cat([gt[..., i::2, j::2] for i in range(2) for j in range(2)], dim=1)
+
+        anneal_coeff = max(self.alpha ** gamma * self.beta, 1)
+
+        burst_loss = anneal_coeff * (self.charbonnier_loss(burst_pred, burst_gt))
+
+        single_loss = self.charbonnier_loss(pred, gt)
+
+        loss = burst_loss + single_loss
+
+        return loss, single_loss, burst_loss
 class AlginLoss(nn.Module):
     def __init__(self, eps=1e-3):
         super(AlginLoss, self).__init__()

@@ -13,7 +13,7 @@ from utils.training_util import MovingAverage, save_checkpoint, load_checkpoint
 from utils.training_util import calculate_psnr, calculate_ssim
 from utils.data_provider_DGF import *
 from utils.data_provider_DGF_synthetic import SingleLoader_DGF_synth
-from utils.loss import LossBasic,WaveletLoss,tv_loss,LossAnneal_i,AlginLoss
+from utils.loss import LossBasic,WaveletLoss,tv_loss,LossAnneal_i,AlginLoss,BasicLoss
 from model.KPN_DGF import KPN_DGF,Att_KPN_DGF,Att_Weight_KPN_DGF,Att_KPN_Wavelet_DGF
 
 def train(num_workers, cuda, restart_train, mGPU):
@@ -127,9 +127,10 @@ def train(num_workers, cuda, restart_train, mGPU):
     #     alpha=0.9998,
     #     beta=100.0
     # )
-    loss_func = LossBasic()
-    # loss_func = AlginLoss()
-    loss_func_i = LossAnneal_i()
+    # loss_func = LossBasic()
+    # # loss_func = AlginLoss()
+    # loss_func_i = LossAnneal_i()
+    loss_func = BasicLoss()
     if args.wavelet_loss:
         print("Use wavelet loss")
         loss_func2 = WaveletLoss()
@@ -200,13 +201,16 @@ def train(num_workers, cuda, restart_train, mGPU):
             pred_i, pred = model(feedData, burst_noise[:, 0:burst_length, ...],image_noise_hr)
             #
             # loss_basic, loss_anneal = loss_func(pred_i, pred, gt, global_step)
-            loss_basic = loss_func(pred, gt)
-            loss_i =loss_func_i(global_step, pred_i, image_gt_lr)
-            loss = loss_basic + loss_i
-            if args.wavelet_loss:
-                loss_wave = loss_func2(pred,gt)
-                # print(loss_wave)
-                loss = loss_basic + loss_wave + loss_i
+            # loss_basic = loss_func(pred, gt)
+            # loss_i =loss_func_i(global_step, pred_i, image_gt_lr)
+            # loss = loss_basic + loss_i
+            # if args.wavelet_loss:
+            #     loss_wave = loss_func2(pred,gt)
+            #     # print(loss_wave)
+            #     loss = loss_basic + loss_wave + loss_i
+            loss_basic,_,_ = loss_func(pred,pred_i, gt,global_step)
+            loss = loss_basic
+
             # backward
             optimizer.zero_grad()
             loss.backward()
