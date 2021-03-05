@@ -184,17 +184,14 @@ def train(num_workers, cuda, restart_train, mGPU):
         for step, (image_noise_hr,image_noise_lr, image_gt_hr, image_gt_lr) in enumerate(data_loader):
             # print(burst_noise.size())
             # print(gt.size())
-            if cuda:
-                burst_noise = image_noise_lr.cuda()
-                gt = image_gt_hr.cuda()
-                image_gt_lr = image_gt_lr.cuda()
-                image_noise_hr = image_noise_hr.cuda()
-            else:
-                burst_noise = image_noise_lr
-                gt = image_gt_hr
+            burst_noise = image_noise_lr.to(device)
+            gt = image_gt_hr.to(device)
+            image_gt_lr = image_gt_lr.to(device)
+            image_noise_hr = image_noise_hr.to(device)
+
             if color:
                 b, N, c, h, w = image_noise_lr.size()
-                feedData = image_noise_lr.view(b, -1, h, w)
+                feedData = image_noise_lr.view(b, -1, h, w).to(device)
             else:
                 feedData = image_noise_lr
             # print('white_level', white_level, white_level.size())
