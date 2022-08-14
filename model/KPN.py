@@ -171,8 +171,13 @@ class KernelConv(nn.Module):
         :return: core_out, a dict
         """
         core_out = {}
+        # print(core.size())
         core = core.view(batch_size, N, -1, 1, height, width)
-        core_out[self.kernel_size[0]] = core[:, :, 0:self.kernel_size[0]**2, ...]
+
+        # core_out[self.kernel_size[0]] = core[:, :, 0:self.kernel_size[0]**2, ...]
+        core_out[self.kernel_size[0]] = core
+        # print(core.size())
+        # print(core[:, :, 0:self.kernel_size[0]**2, ...].size())
         bias = None if not self.core_bias else core[:, :, -1, ...]
         return core_out, bias
 
@@ -200,7 +205,12 @@ class KernelConv(nn.Module):
         kernel = self.kernel_size[::-1]
         for index, K in enumerate(kernel):
             if len(img_stack) == 0:
-                frame_pad = F.pad(frames, [K // 2, K // 2, K // 2, K // 2])
+                # print(frames.size())
+                b,c,n,h,w = frames.size()
+                frame_pad = torch.zeros((b,c,n,h+K // 2+K // 2,w+K // 2+K // 2))
+                # frame_pad = F.pad(frames, [K // 2, K // 2, K // 2, K // 2])
+                # print(frame_pad.size())
+                # frame_pad = frames
                 for i in range(K):
                     for j in range(K):
                         img_stack.append(frame_pad[..., i:i + height, j:j + width])

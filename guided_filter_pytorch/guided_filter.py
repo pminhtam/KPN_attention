@@ -180,8 +180,11 @@ class ConvGuidedFilter2(nn.Module):
         # y_lr (B, 4*3, H, W)
         _, C, h_lrx, w_lrx = x_lr.size()
         # _, _, h_hrx, w_hrx = x_hr.size()
-
-        N = self.box_filter(x_lr.data.new().resize_((1, C, h_lrx, w_lrx)).fill_(1.0))
+        # print(x_lr.size())
+        # N = self.box_filter(x_lr.data.new().resize_((1, C, h_lrx, w_lrx)).fill_(1.0))
+        # print(x_lr.data.new().resize_((1, C, h_lrx, w_lrx)).size())
+        # print(x_lr.data.new().view(-1, C, h_lrx, w_lrx).size())
+        N = self.box_filter(torch.zeros_like(x_lr).fill_(1.0))
         ## mean_x
         mean_x = self.box_filter(x_lr) / N
         ## mean_y
@@ -209,7 +212,7 @@ class ConvGuidedFilter2(nn.Module):
         offset = res[:, -self.n_colors:, ...]
         weight = res[:, :-self.n_colors, ...]
         weight = torch.stack(torch.chunk(weight, chunks=self.n_bursts, dim=1), dim=1)
-        weight = F.softmax(weight, dim=1)  # (B, 4, 3, H, W)
+        # weight = F.softmax(weight, dim=1)  # (B, 4, 3, H, W)
         offset = torch.tanh(offset)
 
         # Avarage

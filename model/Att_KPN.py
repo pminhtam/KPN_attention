@@ -10,7 +10,8 @@ class Att_KPN(nn.Module):
         self.core_bias = core_bias
         self.color_channel = 3 if color else 1
         # in_channel = (3 if color else 1) * (burst_length if blind_est else burst_length + 1)
-        in_channel = in_channel*burst_length
+        # in_channel = in_channel*burst_length
+        in_channel = in_channel
         out_channel = (
             2 * sum(kernel_size) if sep_conv else np.sum(np.array(kernel_size) ** 2)) * burst_length
 
@@ -66,7 +67,7 @@ class Att_KPN(nn.Module):
         core = self.outc(conv9)
 
         return self.kernel_pred(data, core, white_level)
-
+        # return core,conv9
 class Att_KPN_Wavelet(nn.Module):
     def __init__(self, color=True, burst_length=8, blind_est=False, kernel_size=[5], sep_conv=False,
                  channel_att=False, spatial_att=False, upMode='bilinear', core_bias=False,in_channel = 3):
